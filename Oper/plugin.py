@@ -46,7 +46,7 @@ import supybot.log as log
 from itertools import *
 import string
 from strgen import StringGenerator as sg
-
+import hashlib
 class OperError():
     InputError = "An error has occured in your input."
     ReasonOverload =    "Number of reasons given is more than the number of users!"
@@ -97,8 +97,8 @@ class Oper(callbacks.Plugin):
         if subject != "":
             subject = "[%s] - " % (subject)
         irc.queueMsg(ircmsgs.notice("Global", "global %s%s (sent by %s)" % (subject, message, caller)))
-    
-    g = wrap(g, [optional(('matches', re.compile('^(@(.*))?$'), 'You should not see this, please notify an admin.')), 'text'])
+
+    g = wrap(g, ['admin', optional(('matches', re.compile('^(@(.*))?$'), 'You should not see this, please notify an admin.')), 'text'])
 
     def kill(self, irc, msg, args, listofusers, messages):
         """user[,users...] [some reason[some more reasons^...]]
@@ -108,7 +108,7 @@ class Oper(callbacks.Plugin):
         reasons = messages.split(separator)
         if len(reasons) > len(users):
             irc.error(OperError.ReasonOverload, prefixNick=False)
-        elif len(users) >= len(reasons):    
+        elif len(users) >= len(reasons):
             for user, reason in zip_longest(users, reasons, fillvalue=reasons[-1]):
                 irc.queueMsg(ircmsgs.IrcMsg("kill %s :%s" % (user, reason)))
         else:
@@ -117,7 +117,7 @@ class Oper(callbacks.Plugin):
     def passgen(self, irc, msg, args, length, template):
         """[length] [template]
         Generate a password. See 'charsets' for character groups."""
-        
+
         if template == None:
             result = sg("[\w\d]{%s}" % (length)).render()
             irc.reply(result, prefixNick=False)
@@ -146,7 +146,19 @@ class Oper(callbacks.Plugin):
     		]
     		for line in sets:
     		    irc.reply(line, prefixNick=False, notice=True, private=True)
-    charsets = wrap(charsets)    
+    charsets = wrap(charsets)
+    def mkpasswd(self, irc, msg, args, password, digest):
+        """<password> [digest]
+        Hashes the password into the chosen digest. / Uses sha256 if digest isn't given explicitly."""
+        if digest == None:
+            hashlib.sha256(b"Nobody inspects the spammish repetition").hexdigest()            
+        if digest:
+#            try:
+            h = hashlib.new('%s' % digest)
+            h.update(b"%s" % password)
+            irc.reply(h.hexdigest())
+#        hashlib.sha256(b"Nobody inspects the spammish repetition").hexdigest()
+    mkpasswd = wrap(mkpasswd, ['something', optional('something')])
 Class = Oper
 
 
