@@ -48,7 +48,6 @@ import supybot.ircmsgs as ircmsgs
 import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
 import supybot.httpserver as httpserver
-import supybot.conf as conf
 
 if sys.version_info[0] < 3:
     from cStringIO import StringIO
@@ -227,7 +226,6 @@ class GitHub(callbacks.Plugin):
                 return
             repl = flatten_subdicts(payload)
             for (key, value) in dict(repl).items():
-                log.info("%s => %s" % (key, value))
                 if isinstance(value, basestring) and \
                         value.startswith(('http://', 'https://')):
                     host = urlparse(value).netloc
@@ -250,6 +248,17 @@ class GitHub(callbacks.Plugin):
                     # names such as "before" and "after" containing commit IDs.
                     repl[key + '__short'] = value[0:7]
                 elif key == 'commits':
+                    # Get the difference of commits
+                    # in the push +1/-1/±0 format
+                    total_added, total_removed, total_modified = 0
+                    for item in value:
+                        total_added    += len(item['added'])
+                        total_removed  += len(item['removed'])
+                        total_modified += len(item['modified'])
+                    repl['__diff'] = "+%s/-%s/±%s" % (total_added, total_removed, total_modified)
+                    
+                    # Get the total number of commits
+                    # that are in the push
                     repl['__num_commits'] = len(value)
                 elif key.endswith('ref'):
                     try:
@@ -323,7 +332,7 @@ class GitHub(callbacks.Plugin):
                         hidden = None
                         last_commit = commits[-1]
 
-                        max_comm = self.self.registryValue('max_announce_commits')
+                        max_comm = instance.registryValue('max_announce_commits')
 
                         if len(commits) > max_comm + 1:
                             # Limit to the specified number of commits,
