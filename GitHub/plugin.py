@@ -250,13 +250,17 @@ class GitHub(callbacks.Plugin):
                 elif key == 'commits':
                     # Get the difference of commits
                     # in the push +1/-1/±0 format
-                    total_added, total_removed, total_modified = 0
+                    total_added    = 0
+                    total_removed  = 0
+                    total_modified = 0
                     for item in value:
                         total_added    += len(item['added'])
                         total_removed  += len(item['removed'])
                         total_modified += len(item['modified'])
-                    repl['__diff'] = "+%s/-%s/±%s" % (total_added, total_removed, total_modified)
-                    
+                    repl['__diff_add'] = total_added
+                    repl['__diff_rem'] = total_removed
+                    repl['__diff_mod'] = total_modified
+
                     # Get the total number of commits
                     # that are in the push
                     repl['__num_commits'] = len(value)
