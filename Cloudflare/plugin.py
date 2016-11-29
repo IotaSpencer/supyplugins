@@ -33,6 +33,7 @@ from supybot.commands import *
 import supybot.plugins as plugins
 import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
+import supybot.conf as conf
 try:
     from supybot.i18n import PluginInternationalization
     _ = PluginInternationalization('Cloudflare')
@@ -45,6 +46,21 @@ except ImportError:
 class Cloudflare(callbacks.Plugin):
     """Allows access to the Cloudflare (tm) API"""
     threaded = True
+    email = self.registryValue('api.email')
+    key = self.registryValue('api.key')
+    cf = CloudFlare.CloudFlare(email=email, token=key)
+
+    def zones(self, irc, msg, args):
+        """takes no arguments
+        Lists the zones on the account."""
+        listofzones = cf.zones.get()
+        zonelist = []
+        for zone in listofzones:
+            zone_id = zone['id']
+            zone_name = zone['name']
+            zonelist.append("%s->%s" % (zone_id, zone_name))
+        irc.reply("%s" % (" \xB7 ".join(zonelist), notice=True, private=True)
+    zones = wrap(zones, ['admin'])
 
 
 Class = Cloudflare
