@@ -28,41 +28,45 @@
 
 ###
 
-"""
-Cloudflare: Allows access to the Cloudflare (tm) API
-"""
+import supybot.utils as utils
+from supybot.commands import *
+import supybot.plugins as plugins
+import supybot.ircutils as ircutils
+import supybot.callbacks as callbacks
+import supybot.conf as conf
+try:
+    from supybot.i18n import PluginInternationalization
+    _ = PluginInternationalization('CfAPI')
+except ImportError:
+    # Placeholder that allows to run the plugin on a bot
+    # without the i18n module
+    _ = lambda x: x
 
-import supybot
-import supybot.world as world
-
-# Use this for the version of this plugin.  You may wish to put a CVS keyword
-# in here if you're keeping the plugin in CVS or some similar system.
-__version__ = ""
-
-# XXX Replace this with an appropriate author or supybot.Author instance.
-__author__ = supybot.authors.unknown
-
-# This is a dictionary mapping supybot.Author instances to lists of
-# contributions.
-__contributors__ = {}
-
-# This is a url where the most recent plugin package can be downloaded.
-__url__ = ''
-
-from . import config
-from . import plugin
-from imp import reload
-# In case we're being reloaded.
-reload(config)
-reload(plugin)
-# Add more reloads here if you add third-party modules and want them to be
-# reloaded when this plugin is reloaded.  Don't forget to import them as well!
-
-if world.testing:
-    from . import test
-
-Class = plugin.Class
-configure = config.configure
+import CloudFlare
 
 
-# vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
+class CfAPI(callbacks.Plugin):
+    """Allows access to the Cloudflare (tm) API"""
+    threaded = True
+    email = conf.supybot.plugins.CfAPI.api.email()
+    key = conf.supybot.plugins.CfAPI.api.key()
+
+    cf_send = CloudFlare.CloudFlare(email=email, token=key)
+
+    def zones(self, irc, msg, args):
+        """takes no arguments
+        Lists the zones on the account."""
+        listofzones = self.cf_send.zones.get()
+        zonelist = []
+        for zone in listofzones:
+            zone_id = zone['id']
+            zone_name = zone['name']
+            zonelist.append("%s(%s)" % (zone_name, zone_id))
+        irc.reply("%s" % (u" \xB7 ".join(zonelist)), notice=True, private=True)
+    zones = wrap(zones, ['admin'])
+
+
+Class = CfAPI
+
+
+# vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:

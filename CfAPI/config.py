@@ -28,42 +28,34 @@
 
 ###
 
-import supybot.utils as utils
-from supybot.commands import *
-import supybot.plugins as plugins
-import supybot.ircutils as ircutils
-import supybot.callbacks as callbacks
 import supybot.conf as conf
+import supybot.registry as registry
 try:
     from supybot.i18n import PluginInternationalization
-    _ = PluginInternationalization('Cloudflare')
-except ImportError:
+    _ = PluginInternationalization('CfAPI')
+except:
     # Placeholder that allows to run the plugin on a bot
     # without the i18n module
     _ = lambda x: x
 
 
-class Cloudflare(callbacks.Plugin):
-    """Allows access to the Cloudflare (tm) API"""
-    threaded = True
-    email = self.registryValue('api.email')
-    key = self.registryValue('api.key')
-    cf = CloudFlare.CloudFlare(email=email, token=key)
-
-    def zones(self, irc, msg, args):
-        """takes no arguments
-        Lists the zones on the account."""
-        listofzones = cf.zones.get()
-        zonelist = []
-        for zone in listofzones:
-            zone_id = zone['id']
-            zone_name = zone['name']
-            zonelist.append("%s->%s" % (zone_id, zone_name))
-        irc.reply("%s" % (" \xB7 ".join(zonelist), notice=True, private=True)
-    zones = wrap(zones, ['admin'])
+def configure(advanced):
+    # This will be called by supybot to configure this module.  advanced is
+    # a bool that specifies whether the user identified themself as an advanced
+    # user or not.  You should effect your configuration by manipulating the
+    # registry as appropriate.
+    from supybot.questions import expect, anything, something, yn
+    conf.registerPlugin('CfAPI', True)
 
 
-Class = Cloudflare
+CfAPI = conf.registerPlugin('CfAPI')
+# This is where your configuration variables (if any) should go.  For example:
+# conf.registerGlobalValue(CfAPI, 'someConfigVariableName',
+#     registry.Boolean(False, _("""Help for someConfigVariableName.""")))
+conf.registerGroup(CfAPI, 'api')
+conf.registerGlobalValue(CfAPI.api, 'email',
+      registry.String("", _("""Your Cloudflare account email address."""), private=True))
+conf.registerGlobalValue(CfAPI.api, 'key',
+      registry.String("", _("""Your Cloudflare account API key."""), private=True))
 
-
-# vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
+# vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
