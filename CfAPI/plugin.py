@@ -48,16 +48,13 @@ import CloudFlare
 class CfAPI(callbacks.Plugin):
     """Allows access to the Cloudflare (tm) API"""
     threaded = True
-    email = conf.supybot.plugins.CfAPI.api.email()
-    key = conf.supybot.plugins.CfAPI.api.key()
 
-    cf_send = CloudFlare.CloudFlare(email=email, token=key)
 
     def zones(self, irc, msg, args):
         """takes no arguments
         Lists the zones on the account."""
-        email = conf.supybot.plugins.CfAPI.api.email()
-        key = conf.supybot.plugins.CfAPI.api.key()
+        email = self.registryValue('api.email')
+        key = self.registryValue('api.key')
         cf_send = CloudFlare.CloudFlare(email=email, token=key)
 
         listofzones = cf_send.zones.get()
@@ -83,8 +80,8 @@ class CfAPI(callbacks.Plugin):
 
             Returns the records for 'zone id'
             """
-            email = conf.supybot.plugins.CfAPI.api.email()
-            key = conf.supybot.plugins.CfAPI.api.key()
+            email = self.registryValue('api.email')()
+            key = self.registryValue('api.key')()
             cf_send = CloudFlare.CloudFlare(email=email, token=key)
 
             # split params into key, values
@@ -98,17 +95,11 @@ class CfAPI(callbacks.Plugin):
                 dns_records = cf_send.zones.dns_records.get(zone_id, params = newparams)
             except CloudFlare.exceptions.CloudFlareAPIError as e:
                 irc.error('Error: /zones.dns_records.get - %d %s' % (e, e))
+                Raise=True
 
             for dns_record in dns_records:
-                irc.reply('\t%s %30s %6d %-5s %s ; proxied=%s proxiable=%s' % (
-                    dns_record['id'],
-                    dns_record['name'],
-                    dns_record['ttl'],
-                    dns_record['type'],
-                    dns_record['content'],
-                    dns_record['proxied'],
-                    dns_record['proxiable']
-                ), prefixNick=False, notice=False, private=False)
+                irc.reply('\t%(id)s %(name)30s %(ttl)6d %(type)-5s %(content)s ; proxied=%(proxied)s proxiable=%(proxiable)s' % dns_record)
+                    , prefixNick=False, notice=False, private=False)
 
         get = wrap(get, ['admin', 'something', 'text'])
 
