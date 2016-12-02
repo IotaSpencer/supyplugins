@@ -56,7 +56,11 @@ class CfAPI(callbacks.Plugin):
     def zones(self, irc, msg, args):
         """takes no arguments
         Lists the zones on the account."""
-        listofzones = self.cf_send.zones.get()
+        email = conf.supybot.plugins.CfAPI.api.email()
+        key = conf.supybot.plugins.CfAPI.api.key()
+        cf_send = CloudFlare.CloudFlare(email=email, token=key)
+
+        listofzones = cf_send.zones.get()
         zonelist = []
         for zone in listofzones:
             zone_id = zone['id']
@@ -79,6 +83,9 @@ class CfAPI(callbacks.Plugin):
 
             Returns the records for 'zone id'
             """
+            email = conf.supybot.plugins.CfAPI.api.email()
+            key = conf.supybot.plugins.CfAPI.api.key()
+            cf_send = CloudFlare.CloudFlare(email=email, token=key)
 
             # split params into key, values
             # and make sure those that we have
@@ -86,7 +93,6 @@ class CfAPI(callbacks.Plugin):
 
             pattern = re.compile(r"\b(\w+)\s*:\s*([^:]*)(?=\s+\w+\s*:|$)")
             newparams = dict(pattern.findall(params))
-            irc.reply(newparams, prefixNick=False)
 
             try:
                 dns_records = cf_send.zones.dns_records.get(zone_id, params = newparams)
