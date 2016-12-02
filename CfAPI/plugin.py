@@ -94,8 +94,7 @@ class CfAPI(callbacks.Plugin):
             try:
                 dns_records = cf_send.zones.dns_records.get(zone_id, params = newparams)
             except CloudFlare.exceptions.CloudFlareAPIError as e:
-                irc.error('Error: /zones.dns_records.get - %d %s' % (e, e))
-                Raise=True
+                irc.error('Error: /zones.dns_records.get - %d %s' % (e, e), Raise=True)
 
             for dns_record in dns_records:
                 irc.reply('\t%(id)s %(name)30s %(ttl)6d %(type)-5s %(content)s ; proxied=%(proxied)s proxiable=%(proxiable)s' % dns_record)
