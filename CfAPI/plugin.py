@@ -65,6 +65,47 @@ class CfAPI(callbacks.Plugin):
         irc.reply("%s" % (u" \xB7 ".join(zonelist)), notice=True, private=True)
     zones = wrap(zones, ['admin'])
 
+    class dns(callbacks.Commands):
+        def add(self, irc, msg, args, zone_id, record):
+            """<zone id> <name/content/options>
+
+            Adds a record to the zone given.
+            """
+            irc.error("Not implemented")
+        add = wrap(add, ['admin', 'something', 'text'])
+
+        def get(self, irc, msg, args, zone_id, params):
+            """<zone id>
+
+            Returns the records for 'zone id'
+            """
+
+            # split params into key, values
+            # and make sure those that we have
+            # are valid keywords for the api
+
+            pattern = re.compile(r"\b(\w+)\s*:\s*([^:]*)(?=\s+\w+\s*:|$)")
+            newparams = dict(pattern.findall(params))
+            irc.reply(newparams, prefixNick=False)
+
+            try:
+                dns_records = cf_send.zones.dns_records.get(zone_id, params = newparams)
+            except CloudFlare.exceptions.CloudFlareAPIError as e:
+                irc.error('Error: /zones.dns_records.get - %d %s' % (e, e))
+
+            for dns_record in dns_records:
+                irc.reply('\t%s %30s %6d %-5s %s ; proxied=%s proxiable=%s' % (
+                    dns_record['id'],
+                    dns_record['name'],
+                    dns_record['ttl'],
+                    dns_record['type'],
+                    dns_record['content'],
+                    dns_record['proxied'],
+                    dns_record['proxiable']
+                ), prefixNick=False, notice=False, private=False)
+
+        get = wrap(get, ['admin', 'something', 'text'])
+
 
 Class = CfAPI
 
