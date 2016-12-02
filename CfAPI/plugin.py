@@ -80,8 +80,8 @@ class CfAPI(callbacks.Plugin):
 
             Returns the records for 'zone id'
             """
-            email = self.registryValue('api.email')()
-            key = self.registryValue('api.key')()
+            email = self.registryValue('api.email')
+            key = self.registryValue('api.key')
             cf_send = CloudFlare.CloudFlare(email=email, token=key)
 
             # split params into key, values
