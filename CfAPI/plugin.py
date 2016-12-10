@@ -97,7 +97,7 @@ class CfAPI(callbacks.Plugin):
 
             email = conf.supybot.plugins.CfAPI.api.email()
             key = conf.supybot.plugins.CfAPI.api.key()
-            cf_send = CloudFlare.CloudFlare(email=email, token=key, raw=True, debug=True)
+            cf_send = CloudFlare.CloudFlare(email=email, token=key)
             try:
                 response = cf_send.zones.dns_records.delete(zone_id, record_id)
                 irc.reply("Done!")
