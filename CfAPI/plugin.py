@@ -44,18 +44,23 @@ except ImportError:
 
 import CloudFlare
 import re
-
+def get_cf():
+    email = conf.supybot.plugins.CfAPI.api.email()
+    key = conf.supybot.plugins.CfAPI.api.key()
+    cf_send = CloudFlare.CloudFlare(email=email, token=key)
+    return cf_send
+    
 class CfAPI(callbacks.Plugin):
     """Allows access to the Cloudflare (tm) API"""
     threaded = True
 
+        
     def zones(self, irc, msg, args):
         """takes no arguments
-        Lists the zones on the account."""
-        email = conf.supybot.plugins.CfAPI.api.email()
-        key = conf.supybot.plugins.CfAPI.api.key()
-        cf_send = CloudFlare.CloudFlare(email=email, token=key)
 
+        Lists the zones on the account."""
+        cf_send = get_cf()
+        
         listofzones = cf_send.zones.get()
         zonelist = []
         for zone in listofzones:
@@ -76,10 +81,7 @@ class CfAPI(callbacks.Plugin):
 
             Adds a record to the zone given.
             """
-            email = conf.supybot.plugins.CfAPI.api.email()
-            key = conf.supybot.plugins.CfAPI.api.key()
-            cf_send = CloudFlare.CloudFlare(email=email, token=key)
-            
+            cf_send = get_cf()
             
             record = dict(self.pattern.findall(data))
             try:
@@ -94,11 +96,11 @@ class CfAPI(callbacks.Plugin):
 
         def rem(self, irc, msg, args, zone_id, record_id):
             """<zone_id> [record_id]
+
             You get the record id from checking for the record via 'dns get'""" 
 
-            email = conf.supybot.plugins.CfAPI.api.email()
-            key = conf.supybot.plugins.CfAPI.api.key()
-            cf_send = CloudFlare.CloudFlare(email=email, token=key)
+            cf_send = get_cf()
+            
             try:
                 response = cf_send.zones.dns_records.delete(zone_id, record_id)
                 irc.reply("Done!")
@@ -112,9 +114,7 @@ class CfAPI(callbacks.Plugin):
 
             Returns the records for 'zone id'
             """
-            email = conf.supybot.plugins.CfAPI.api.email()
-            key = conf.supybot.plugins.CfAPI.api.key()
-            cf_send = CloudFlare.CloudFlare(email=email, token=key)
+            cf_send = get_cf()
 
             # split params into key, values
             # and make sure those that we have
@@ -142,9 +142,7 @@ class CfAPI(callbacks.Plugin):
             
             consists of the type of record (A, AAAA, CNAME, etc.) and
             its IP (0.0.0.0) and Name (irc)"""
-            email = conf.supybot.plugins.CfAPI.api.email()
-            key = conf.supybot.plugins.CfAPI.api.key()
-            cf_send = CloudFlare.CloudFlare(email=email, token=key)
+            cf_send = get_cf()
             
             options = opts
             
@@ -152,16 +150,15 @@ class CfAPI(callbacks.Plugin):
             record = {'name': name, 'content': content}
             record.update(options)
             
-            
-            
             # create the record
             cf_send.zones.dns_records.post(self.default_zone, data = record)
             
             # see if the record now exists
             
             body = {'name': name, 'content': content}
-            response = cf_send.zones.dns_records.get(zone, data = body)
+            response = cf_send.zones.dns_records.get(self.default_zone, data = body)
             irc.reply(response)
+            
         add = wrap(add, ['admin', 'something', 'something', 'text'])
 
         #def rem(self, irc, msg, args, record_id):
@@ -171,16 +168,12 @@ class CfAPI(callbacks.Plugin):
             """<key:value> [key:value]...
             
             lists the records for names given inside supposed rr's (round robins)"""
-            
-            email = conf.supybot.plugins.CfAPI.api.email()
-            key = conf.supybot.plugins.CfAPI.api.key()
-            cf_send = CloudFlare.CloudFlare(email=email, token=key)
-            zone = conf.supybot.plugins.CfAPI.rr.zone()
+            cf_send = get_cf()
             
             opts = dict(self.pattern.findall(opts))
 
             try:
-                dns_records = cf_send.zones.dns_records.get(zone, params = opts)
+                dns_records = cf_send.zones.dns_records.get(self.default_zone, params = opts)
             except CloudFlare.exceptions.CloudFlareAPIError as e:
                 irc.error('Error: /zones.dns_records.get - %d %s' % (e, e), Raise=True)
 
