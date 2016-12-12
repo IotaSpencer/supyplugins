@@ -68,7 +68,7 @@ class CfAPI(callbacks.Plugin):
     class dns(callbacks.Commands):
 
         def add(self, irc, msg, args, zone_id, data):
-            """<zone id> <name/content/options>
+            """<zone id> \"<content(IP, TXT value)>\" <name(subdomain, etc.)> [data]
 
             Adds a record to the zone given.
             """
@@ -76,22 +76,19 @@ class CfAPI(callbacks.Plugin):
             key = conf.supybot.plugins.CfAPI.api.key()
             cf_send = CloudFlare.CloudFlare(email=email, token=key)
             
-            pattern = re.compile(r"\b(\w+)\s*:\s*([^:]*)(?=\s+\w+\s*:|$)")
+            pattern = re.compile(r"\b(\w+)\s*:\s*([^\s]+)")
             record = dict(pattern.findall(data))
             try:
-                if record['ttl'] > 604800 or record['ttl'] < 0:
-                    record['ttl'] = '1'
-                
+                if int(record['ttl']) > 604800 or int(record['ttl']) < 0:
+                    record['ttl'] = '1'    
             except KeyError:
                 record['ttl'] = '1'
             
-            response = cf_send.zones.dns_records.post(zone_id, data = record)
-            
-            
-        
-        add = wrap(add, ['admin', 'something', 'text'])
+            response = cf_send.zones.dns_records.post(zone_id, data = body)
 
-        def remove(self, irc, msg, args, zone_id, record_id):
+        add = wrap(add, ['admin', 'something', 'something', optional('text')])
+
+        def rem(self, irc, msg, args, zone_id, record_id):
             """<zone_id> [record_id]
             You get the record id from checking for the record via 'dns get'""" 
 
@@ -106,9 +103,9 @@ class CfAPI(callbacks.Plugin):
             except CloudFlare.exceptions.CloudFlareAPIError as e:
                 for x in e:
                     irc.error("api error: %d %s" % (x, x))
-        remove = wrap(remove, ['admin', 'something', 'text'])
+        rem = wrap(rem, ['admin', 'something', 'text'])
         def get(self, irc, msg, args, zone_id, params):
-            """<zone id>
+            """<zone id> [params]
 
             Returns the records for 'zone id'
             """
@@ -120,7 +117,7 @@ class CfAPI(callbacks.Plugin):
             # and make sure those that we have
             # are valid keywords for the api
 
-            pattern = re.compile(r"\b(\w+)\s*:\s*([^:]*)(?=\s+\w+\s*:|$)")
+            pattern = re.compile(r"\b(\w+)\s*:\s*([^\s]+)")
             newparams = dict(pattern.findall(params))
 
             try:
@@ -131,10 +128,66 @@ class CfAPI(callbacks.Plugin):
             for dns_record in dns_records:
                 irc.reply('%(id)s / %(name)s / %(ttl)d / %(type)s / %(content)s ; proxied=%(proxied)s proxiable=%(proxiable)s' % dns_record,
                     prefixNick=False, notice=False, private=False)
-
         get = wrap(get, ['admin', 'something', 'text'])
 
+    class rr(callbacks.Commands):
+        """Helps with managing round robins of sorts, using short
+            names to add, and returning the record_id for lookup later"""
+        
+        default_zone = conf.supybot.plugins.CfAPI.rr.zone()
+        def add(self, irc, msg, args, name, content, opts):
+            """<record>
+            consists of the type of record (A, AAAA, CNAME, etc.) and
+            its IP (0.0.0.0) and Name (irc)"""
+            email = conf.supybot.plugins.CfAPI.api.email()
+            key = conf.supybot.plugins.CfAPI.api.key()
+            cf_send = CloudFlare.CloudFlare(email=email, token=key)
+            
+            options = opts
+            pattern = re.compile(r"\b(\w+)\s*:\s*([^\s]+)")
+            options = dict(pattern.findall(options))
+            record = {'name': name, 'content': content}
+            record.update(options)
+            
+            
+            
+            # create the record
+            cf_send.zones.dns_records.post(self.default_zone, data = record)
+            
+            # see if the record now exists
+            
+            body = {'name': name, 'content': content}
+            response = cf_send.zones.dns_records.get(zone, data = body)
+            irc.reply(response)
+        add = wrap(add, ['admin', 'something', 'something', 'text'])
 
+        #def rem(self, irc, msg, args, record_id):
+        
+        
+        def lists(self, irc, msg, args, opts):
+            """<key:value> [key:value]...
+            
+            lists the records for names given inside supposed rr's (round robins)"""
+            
+            email = conf.supybot.plugins.CfAPI.api.email()
+            key = conf.supybot.plugins.CfAPI.api.key()
+            cf_send = CloudFlare.CloudFlare(email=email, token=key)
+            zone = conf.supybot.plugins.CfAPI.rr.zone()
+            
+            pattern = re.compile(r"\b(\w+)\s*:\s*([^\s]+)")
+            opts = dict(pattern.findall(opts))
+
+            try:
+                dns_records = cf_send.zones.dns_records.get(zone, params = opts)
+            except CloudFlare.exceptions.CloudFlareAPIError as e:
+                irc.error('Error: /zones.dns_records.get - %d %s' % (e, e), Raise=True)
+
+            for dns_record in dns_records:
+                irc.reply('%(id)s / %(name)s / %(type)s / %(content)s' % dns_record,
+                    prefixNick=False, notice=False, private=False)
+            
+        lists = wrap(lists, ['admin', 'text'])
+        
 Class = CfAPI
 
 
