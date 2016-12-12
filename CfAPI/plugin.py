@@ -66,7 +66,11 @@ class CfAPI(callbacks.Plugin):
     zones = wrap(zones, ['admin'])
 
     class dns(callbacks.Commands):
-
+        """
+        Adds in commands pertaining to managing your dns records.
+        """
+        
+        pattern = re.compile(r"\b(\w+)\s*:\s*([^\s]+)")
         def add(self, irc, msg, args, zone_id, data):
             """<zone id> \"<content(IP, TXT value)>\" <name(subdomain, etc.)> [data]
 
@@ -76,8 +80,8 @@ class CfAPI(callbacks.Plugin):
             key = conf.supybot.plugins.CfAPI.api.key()
             cf_send = CloudFlare.CloudFlare(email=email, token=key)
             
-            pattern = re.compile(r"\b(\w+)\s*:\s*([^\s]+)")
-            record = dict(pattern.findall(data))
+            
+            record = dict(self.pattern.findall(data))
             try:
                 if int(record['ttl']) > 604800 or int(record['ttl']) < 0:
                     record['ttl'] = '1'    
@@ -98,7 +102,6 @@ class CfAPI(callbacks.Plugin):
             try:
                 response = cf_send.zones.dns_records.delete(zone_id, record_id)
                 irc.reply("Done!")
-                irc.reply(response)
                 
             except CloudFlare.exceptions.CloudFlareAPIError as e:
                 for x in e:
@@ -117,17 +120,15 @@ class CfAPI(callbacks.Plugin):
             # and make sure those that we have
             # are valid keywords for the api
 
-            pattern = re.compile(r"\b(\w+)\s*:\s*([^\s]+)")
-            newparams = dict(pattern.findall(params))
+            newparams = dict(self.pattern.findall(params))
 
             try:
                 dns_records = cf_send.zones.dns_records.get(zone_id, params = newparams)
             except CloudFlare.exceptions.CloudFlareAPIError as e:
                 irc.error('Error: /zones.dns_records.get - %d %s' % (e, e), Raise=True)
 
-            for dns_record in dns_records:
-                irc.reply('%(id)s / %(name)s / %(ttl)d / %(type)s / %(content)s ; proxied=%(proxied)s proxiable=%(proxiable)s' % dns_record,
-                    prefixNick=False, notice=False, private=False)
+            irc.replies(['%(id)s / %(name)s / %(ttl)d / %(type)s / %(content)s ; proxied=%(proxied)s proxiable=%(proxiable)s' % dns_record for dns_record in dns_records],
+                prefixNick=False, notice=False, private=False)
         get = wrap(get, ['admin', 'something', 'text'])
 
     class rr(callbacks.Commands):
@@ -135,8 +136,10 @@ class CfAPI(callbacks.Plugin):
             names to add, and returning the record_id for lookup later"""
         
         default_zone = conf.supybot.plugins.CfAPI.rr.zone()
+        pattern = re.compile(r"\b(\w+)\s*:\s*([^\s]+)")
         def add(self, irc, msg, args, name, content, opts):
             """<record>
+            
             consists of the type of record (A, AAAA, CNAME, etc.) and
             its IP (0.0.0.0) and Name (irc)"""
             email = conf.supybot.plugins.CfAPI.api.email()
@@ -144,8 +147,8 @@ class CfAPI(callbacks.Plugin):
             cf_send = CloudFlare.CloudFlare(email=email, token=key)
             
             options = opts
-            pattern = re.compile(r"\b(\w+)\s*:\s*([^\s]+)")
-            options = dict(pattern.findall(options))
+            
+            options = dict(self.pattern.findall(options))
             record = {'name': name, 'content': content}
             record.update(options)
             
@@ -174,17 +177,15 @@ class CfAPI(callbacks.Plugin):
             cf_send = CloudFlare.CloudFlare(email=email, token=key)
             zone = conf.supybot.plugins.CfAPI.rr.zone()
             
-            pattern = re.compile(r"\b(\w+)\s*:\s*([^\s]+)")
-            opts = dict(pattern.findall(opts))
+            opts = dict(self.pattern.findall(opts))
 
             try:
                 dns_records = cf_send.zones.dns_records.get(zone, params = opts)
             except CloudFlare.exceptions.CloudFlareAPIError as e:
                 irc.error('Error: /zones.dns_records.get - %d %s' % (e, e), Raise=True)
 
-            for dns_record in dns_records:
-                irc.reply('%(id)s / %(name)s / %(type)s / %(content)s' % dns_record,
-                    prefixNick=False, notice=False, private=False)
+            irc.replies(['%(id)s / %(name)s / %(type)s / %(content)s' % dns_record for dns_record in dns_records],
+                prefixNick=False, notice=False, private=False)
             
         lists = wrap(lists, ['admin', 'text'])
         
