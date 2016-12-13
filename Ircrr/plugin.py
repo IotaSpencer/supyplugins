@@ -50,10 +50,71 @@ def get_cf():
     key = conf.supybot.plugins.Ircrr.api.key()
     cf_send = CloudFlare.CloudFlare(email=email, token=key, raw=True)
     return cf_send
+    
 class Ircrr(callbacks.Plugin):
     """Allows access to the Cloudflare (tm) API to
         manage Round Robins"""
     threaded = True
-    
-
+    class rr(callbacks.Commands):
+        zone_id = conf.supybot.plugins.Ircrr.rr.zone_id()
+        zone_name = conf.supybot.plugins.Ircrr.rr.zone()
+        pattern = re.compile(r"\b(\w+)\s*:\s*([^\s]+)")
+        
+        # @param subdomain - the name of the rr
+        # @param rtype - the type of record this is
+        # @param content - the IP or hostname
+        def add(self, irc, msg, args, subdomain, rtype, content):
+            """<name> <type(A,AAAA,CNAME)> <content(IP, Hostname)>
+            
+            add a entry to a round robin under the given subdomain name.
+            """
+            cf_send = get_cf()
+            zone = self.zone_name
+            
+            name = subdomain+'.'+zone
+            if rtype.upper() not in ('A','AAAA','CNAME'):
+                irc.error('Invalid Round Robin record type.', prefixNick=False)
+            
+            body = {'name': name, 'content': content, 'type': rtype}
+            response = cf_send.zones.dns_records.post(self.zone_id, data = body)
+            response = response.get('result')
+            if response:
+                irc.reply("Record added, Name: %(name)s Content: %(content)s Type: %(type)" % response, prefixNick=False)
+            else:
+                irc.error("Failure", prefixNick=False)
+        add = wrap(add, ['admin', 'something', 'something', 'something'])
+        
+        def rem(self, irc, msg, args, record_id):
+            """<record id>
+            
+            removes a record from the round robin"""
+            cf_send = get_cf()
+            zone = self.zone_id
+            
+            response = cf_send.zones.dns_records.delete(zone, record_id)
+            try:
+                id = response['result']['id']
+                irc.reply('Record ID %s removed' % id, prefixNick=False)
+            except KeyError:
+                pass
+                
+        rem = wrap(rem, ['admin', 'something'])
+        
+        def get(self, irc, msg, args, subdomain, extra):
+            """<rr subdomain>
+            
+            lists out the entries in a round robin of the given subdomain"""
+            cf_send = get_cf()
+            zone = self.zone_id
+            zone_name = self.zone_name
+            body = {'name': subdomain+'.'+zone_name}
+            if extra != None:
+                options = dict(self.pattern.findall(extra))
+                body.update(options)
+                
+            dns_records = cf_send.zones.dns_records.get(zone, params = body)
+            dns_records = dns_records.get('result')
+            irc.replies(['%(id)s / %(name)s / %(type)s / %(content)s' % dns_record for dns_record in dns_records], prefixNick=False)
+        get = wrap(get, ['admin', 'something', optional('text')])
+        
 Class = Ircrr

@@ -54,11 +54,12 @@ Ircrr = conf.registerPlugin('Ircrr')
 #     registry.Boolean(False, _("""Help for someConfigVariableName.""")))
 conf.registerGroup(Ircrr, 'api')
 conf.registerGlobalValue(Ircrr.api, 'email',
-      registry.String("", _("""Your Cloudflare account email address."""), private=True))
+        registry.String("", _("""Your Cloudflare account email address."""), private=True))
 conf.registerGlobalValue(Ircrr.api, 'key',
-      registry.String("", _("""Your Cloudflare account API key."""), private=True))
+        registry.String("", _("""Your Cloudflare account API key."""), private=True))
 conf.registerGroup(Ircrr, 'rr')
 conf.registerGlobalValue(Ircrr.rr, 'zone',
         registry.String("", _("""The default zone that the plugin should manage""")))
-
+conf.registerGlobalValue(Ircrr.rr, 'zone_id',
+        registry.String("", _("""The id of your default zone."""), private=True))
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
