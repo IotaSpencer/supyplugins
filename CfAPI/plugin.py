@@ -127,11 +127,10 @@ class CfAPI(callbacks.Plugin):
                 prefixNick=False, notice=False, private=False)
         get = wrap(get, ['admin', 'something', 'text'])
 
-    class rr(callbacks.Commands):
-        """Helps with managing round robins of sorts, using short
-            names to add, and returning the record_id for lookup later"""
+    class zdns(callbacks.Commands):
+        """Helps with managing a single zone"""
         
-        default_zone = conf.supybot.plugins.CfAPI.rr.zone()
+        default_zone = conf.supybot.plugins.CfAPI.zdns.zone()
         pattern = re.compile(r"\b(\w+)\s*:\s*([^\s]+)")
         
         def add(self, irc, msg, args, name, rtype, content, opts):
