@@ -45,7 +45,13 @@ except ImportError:
 class DNSbl(callbacks.Plugin):
     """DNS Blacklist checker"""
     threaded = True
-
+    def check(self, irc, msg, args, ip):
+        """<ip>
+        
+        Looks up whether the IP given is in any DNSBL's (Domain Name System Blacklist)"""
+        
+        irc.reply(ip)
+    check = wrap(check, ['ip'])
 
 Class = DNSbl
 
