@@ -247,9 +247,9 @@ class GitHub(callbacks.Plugin):
                     # Check if it looks like a commit ID, because there are key
                     # names such as "before" and "after" containing commit IDs.
                     repl[key + '__short'] = value[0:7]
+                    
                 elif key == 'commits':
-                    # Get the difference of commits
-                    # in the push +1/-1/±0 format
+                
                     total_added    = 0
                     total_removed  = 0
                     total_modified = 0

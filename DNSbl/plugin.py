@@ -51,7 +51,7 @@ class DNSbl(callbacks.Plugin):
         Looks up whether the IP given is in any DNSBL's (Domain Name System Blacklist)"""
         
         irc.reply(ip)
-    check = wrap(check, ['ip'])
+    check = wrap(check, [first('hostmask', 'ip')])
 
 Class = DNSbl
 
