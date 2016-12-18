@@ -434,8 +434,14 @@ class GitHub(callbacks.Plugin):
             irc.error(_('This repository is not yet announced to this '
                         'channel.'))
         remove = wrap(remove, ['channel', 'something', 'something'])
-
-
+        
+        def alist(self, irc, msg, args):
+            """
+            
+            Lists out the Repo's being announced in the given channel
+            """
+            
+        alist = wrap(alist, ['channel'])
 
     class repo(callbacks.Commands):
         def _url(self):
