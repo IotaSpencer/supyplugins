@@ -41,18 +41,124 @@ except ImportError:
     # without the i18n module
     _ = lambda x: x
 
+import dns.resolver as dns
+import ConfigParser
+import supybot.conf as conf
+import supybot.log as log
 
+def rev(ip):
+    ip = ip.split('.')
+    ip.reverse()
+    return ip
+    
+def makeIP(host):
+    isIP = None
+    if re.match(re.compile(r'[A-Za-z]+'), host):
+        isIP = False
+    else:
+        isIP = True
+    if isIP:
+        return host
+    else:
+        mya = dns.query(host, 'A')
+        replies = []
+        for rdata in mya:
+            replies.append(rdata)
+        return replies
+        
 class DNSbl(callbacks.Plugin):
     """DNS Blacklist checker"""
     threaded = True
-    def check(self, irc, msg, args, ip):
-        """<ip>
+    
+    def check(self, irc, msg, args, ip, dnsbl):
+        """<ip/host>
         
-        Looks up whether the IP given is in any DNSBL's (Domain Name System Blacklist)"""
+        Perform a dnsbl check
+        """
+        if re.match(re.compile(r'[A-Za-z]+'), ip):
+            try:
+                result = dns.query(ip, 'A')
+            except NXDOMAIN:
+                irc.error("NXDomain returned, IP is unlisted, doesn't have a record attached to it, or your input is invalid", prefixNick=False)
+                return            
         
-        irc.reply(ip)
-    check = wrap(check, [first('hostmask', 'ip')])
+        if 
+        
 
+        if dnsbl:
+            
+        result = dns.query()
+        for rdata in result:
+            irc.reply(rdata)
+        
+    check = wrap(check, ['somethingWithoutSpaces', optional('somethingWithoutSpaces')])
+    
+    class dnsbl(callbacks.Commands):
+        """
+        Allows adding, removing, and listing of dnsbls
+        """
+        
+        config = ConfigParser.ConfigParser()
+        plugins_dir = conf.supybot.directories.plugins()
+        cfgfile = plugins_dir[0]+'/DNSbl/local/bls.ini'
+
+        
+        def add(self, irc, msg, args, blname, bl):
+            """<name> <blacklist host>
+            
+            Adds a blacklist into the plugins config
+            """
+            config.read(self.cfgfile)
+            config.set('blacklists', blname, bl)
+            config.add_section(blname)
+            
+        add = wrap(add, ['admin', 'somethingWithoutSpaces', 'somethingWithoutSpaces'])
+        
+        def rem(self, irc, msg, args, bl):
+            """<blacklist name>
+            
+            Remove a blacklist
+            """
+            
+        rem = wrap(rem, ['admin', 'somethingWithoutSpaces'])
+        
+        def bls(self, irc, msg, args):
+            """takes no arguments
+            
+            Lists the blacklists in use
+            """
+            config = self.config
+            config.read(self.cfgfile)
+            listbls = []
+            for k,v in config.items('blacklists'):
+                listbls.append('%s - %s' % (k, v))
+            msg_bls = 'Blacklists: %s' % (' \xB7 '.join(listbls))
+            irc.reply(msg_bls, prefixNick=False)
+            
+        bls = wrap(bls, ['admin'])
+        
+        def addrec(self, irc, msg, args, bl, record, rreply):
+            """<blacklist name> <reply answer> <reply string>
+            
+            Add a reply for a record on the given blacklist
+            """
+            config = self.config
+            config.read(self.cfgfile)
+            config.set(bl, record, rreply)
+        addrec = wrap(addrec, ['admin', 'somethingWithoutSpaces', 'somethingWithoutSpaces', 'text'])
+        
+        def remrec(self, irc, msg, args, bl, record):
+            """<blacklist name> <reply answer>
+            
+            Removes a reply from the given blacklist
+            """
+            config = self.config
+            config.read(self.cfgfile)
+            try:
+                if config.remove_option(bl, record):
+                    irc.reply("Reply removed.", prefixNick=False)
+                
+        
 Class = DNSbl
 
 

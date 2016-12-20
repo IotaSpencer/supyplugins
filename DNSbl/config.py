@@ -52,7 +52,6 @@ DNSbl = conf.registerPlugin('DNSbl')
 # This is where your configuration variables (if any) should go.  For example:
 # conf.registerGlobalValue(DNSbl, 'someConfigVariableName',
 #     registry.Boolean(False, _("""Help for someConfigVariableName.""")))
-conf.registerGlobalValue(DNSbl, 'blacklists',
-    registry.SpaceSeparatedListOfStrings("", _("""Contains the list of blacklists""")))
+
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
