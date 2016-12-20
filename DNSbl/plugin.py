@@ -64,7 +64,11 @@ def makeIP(host):
         replies = []
         for rdata in mya:
             replies.append(rdata)
-        return replies
+        if len(replies) > 1:
+            return -1
+        elif len(replies) == 1:
+            return replies
+        
         
 class DNSbl(callbacks.Plugin):
     """DNS Blacklist checker"""
