@@ -60,14 +60,17 @@ def makeIP(host):
     if isIP:
         return host
     else:
-        mya = dns.query(host, 'A')
-        replies = []
-        for rdata in mya:
-            replies.append(rdata)
-        if len(replies) > 1:
+        try:
+            mya = dns.query(host, 'A')
+            reply = []
+            for rdata in mya:
+                reply.append(rdata)
+            if len(reply) > 1:
+                return -1
+            elif len(reply) == 1:
+                return reply
+        except NXDOMAIN:
             return -1
-        elif len(replies) == 1:
-            return replies
         
         
 class DNSbl(callbacks.Plugin):
@@ -79,21 +82,8 @@ class DNSbl(callbacks.Plugin):
         
         Perform a dnsbl check
         """
-        if re.match(re.compile(r'[A-Za-z]+'), ip):
-            try:
-                result = dns.query(ip, 'A')
-            except NXDOMAIN:
-                irc.error("NXDomain returned, IP is unlisted, doesn't have a record attached to it, or your input is invalid", prefixNick=False)
-                return            
-        
-        if 
-        
-
-        if dnsbl:
-            
-        result = dns.query()
-        for rdata in result:
-            irc.reply(rdata)
+        result = makeIP(ip)
+        irc.reply(result)
         
     check = wrap(check, ['somethingWithoutSpaces', optional('somethingWithoutSpaces')])
     
