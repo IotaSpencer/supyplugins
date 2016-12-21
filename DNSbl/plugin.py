@@ -151,8 +151,7 @@ class DNSbl(callbacks.Plugin):
             try:
                 if config.remove_option(bl, record):
                     irc.reply("Reply removed.", prefixNick=False)
-                
-        
+
 Class = DNSbl
 
 
