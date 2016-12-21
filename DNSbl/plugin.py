@@ -170,6 +170,7 @@ class DNSbl(callbacks.Plugin):
                 irc.error("That reply did not exist.")
             except NoSectionError:
                 irc.error("Blacklist %s does not exist in config." % bl)
+        remrec = wrap(remrec, ['admin', 'somethingWithoutSpaces', 'somethingWithoutSpaces'])
 Class = DNSbl
 
 
