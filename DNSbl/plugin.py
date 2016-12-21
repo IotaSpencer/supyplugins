@@ -103,8 +103,14 @@ class DNSbl(callbacks.Plugin):
             Adds a blacklist into the plugins config
             """
             config.read(self.cfgfile)
-            config.set('blacklists', blname, bl)
-            config.add_section(blname)
+            try:
+                config.add_section(blname)
+                config.set('blacklists', blname, bl)
+                irc.reply("Blacklist %s added with host %s." % (blname, bl), prefixNick=False)
+            except DuplicateSectionError:
+                irc.error("Blacklist already exists.")
+            
+            
             
         add = wrap(add, ['admin', 'somethingWithoutSpaces', 'somethingWithoutSpaces'])
         
@@ -113,7 +119,13 @@ class DNSbl(callbacks.Plugin):
             
             Remove a blacklist
             """
-            
+            config.read(self.cfgfile)
+            result = config.remove_section(bl)
+            if result == True:
+                irc.reply("Blacklist %s removed." % bl)
+            else:
+                irc.error("That blacklist did not exist.")
+                
         rem = wrap(rem, ['admin', 'somethingWithoutSpaces'])
         
         def bls(self, irc, msg, args):
@@ -138,7 +150,10 @@ class DNSbl(callbacks.Plugin):
             """
             config = self.config
             config.read(self.cfgfile)
-            config.set(bl, record, rreply)
+            try:
+                config.set(bl, record, rreply)
+            except NoSectionError:
+                irc.error("That blacklist does not exist in the config.")
         addrec = wrap(addrec, ['admin', 'somethingWithoutSpaces', 'somethingWithoutSpaces', 'text'])
         
         def remrec(self, irc, msg, args, bl, record):
@@ -151,7 +166,10 @@ class DNSbl(callbacks.Plugin):
             try:
                 if config.remove_option(bl, record):
                     irc.reply("Reply removed.", prefixNick=False)
-
+            except NoOptionError:
+                irc.error("That reply did not exist.")
+            except NoSectionError:
+                irc.error("Blacklist %s does not exist in config." % bl)
 Class = DNSbl
 
 
