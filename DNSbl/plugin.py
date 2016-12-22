@@ -43,6 +43,8 @@ except ImportError:
 
 import dns.resolver as dns
 import ConfigParser
+import re
+
 import supybot.conf as conf
 import supybot.log as log
 
