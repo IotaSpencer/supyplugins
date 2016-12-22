@@ -70,7 +70,7 @@ def makeIP(host):
             if len(reply) > 1:
                 return -1
             elif len(reply) == 1:
-                return reply
+                return ''.join(reply)
         except NXDOMAIN:
             return -1
         
