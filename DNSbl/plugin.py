@@ -71,17 +71,6 @@ def makeIP(host):
         except exception.DNSException:
             return None
 
-# @desc
-# @param ip - IP to check, already sanitized
-# @param bl - optional blacklist to check it through
-#
-# if bl isn't chosen, it will check
-# all blacklists in the config
-
-        
-        
-        
-    
 
 class DNSbl(callbacks.Plugin):
     """DNS Blacklist checker"""
@@ -89,8 +78,8 @@ class DNSbl(callbacks.Plugin):
 
     def _checkbl(self, ip, bl=None):
         config = ConfigParser.ConfigParser()
-        plugins_dir = conf.supybot.directories.plugins()
-        cfgfile = plugins_dir[0]+'/DNSbl/local/bls.ini'
+        cfgfile = conf.supybot.directories.data.dirize('bls.ini')
+        
         
         config.read(cfgfile)
         
@@ -99,24 +88,49 @@ class DNSbl(callbacks.Plugin):
         ip = '.'.join(ip)
         if bl:
             recordstring = ip+'.'+bl
+            try:
+                for rdata in dns.query(recordstring, 'A'):
+                    return str(rdata)
+            except exception.DNSException:
+                return -1
         else:
-            
             result = []
+            zones = []
+            enddict = {'zones': [],
+                'detected_in': 0,
+                'notdetected_in': 0,
+                'replies': {},                    
+                }
             for name, blacklist in config.items('blacklists'):
                 recordstring = ip+'.'+blacklist
-                for rdata in dns.query(recordstring, 'A')
-        return result
+                try:
+                    for rdata in dns.query(recordstring, 'A'):
+                        if type(rdata) == 'list':
+                            return None
+                        reply = str(rdata)
+                        reply = reply.split('.')
+                        reply = reply[3]
+                        enddict['detected_in'] += 1
+                        enddict['zones'].append(name)
+                        enddict['replies'][name] = config.get(name, reply)
+                except exception.DNSException:
+                    enddict['notdetected_in'] += 1
+                    
+        return enddict
         
     def check(self, irc, msg, args, ip, dnsbl):
         """<ip/host>
         
         Perform a dnsbl check
         """
+        config = ConfigParser.ConfigParser()
+        cfgfile = conf.supybot.directories.data.dirize('bls.ini')
+        config.read(cfgfile)
         
         ip = makeIP(ip)
         result = self._checkbl(ip, dnsbl)
-        irc.reply(result)
-        
+        irc.reply("IP %s has been found in the following blacklists: %s" % (ip, ', '.join(result['zones'])), prefixNick=False)
+        irc.reply("Otherwise, the given IP was run through %s blacklists, It was listed in %s blacklist(s), and unlisted in %s blacklist(s)." % (len(config.items('blacklists')), result['detected_in'], result['notdetected_in']))
     check = wrap(check, ['somethingWithoutSpaces', optional('somethingWithoutSpaces')])
     
     class dnsbl(callbacks.Commands):
@@ -125,8 +139,7 @@ class DNSbl(callbacks.Plugin):
         """
         
         config = ConfigParser.ConfigParser()
-        plugins_dir = conf.supybot.directories.plugins()
-        cfgfile = plugins_dir[0]+'/DNSbl/local/bls.ini'
+        cfgfile = conf.supybot.directories.data.dirize('bls.ini')
 
         
         def add(self, irc, msg, args, blname, bl):
