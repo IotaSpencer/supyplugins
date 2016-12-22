@@ -41,6 +41,7 @@ except ImportError:
     # without the i18n module
     _ = lambda x: x
 
+import dns.exception as exception
 import dns.resolver as dns
 import ConfigParser
 import re
@@ -48,11 +49,7 @@ import re
 import supybot.conf as conf
 import supybot.log as log
 
-def rev(ip):
-    ip = ip.split('.')
-    ip.reverse()
-    return ip
-    
+
 def makeIP(host):
     isIP = None
     if re.match(re.compile(r'[A-Za-z]+'), host):
@@ -70,21 +67,54 @@ def makeIP(host):
             if len(reply) > 1:
                 return -1
             elif len(reply) == 1:
-                return ''.join(reply)
-        except NXDOMAIN:
-            return -1
+                return reply[0]
+        except exception.DNSException:
+            return None
+
+# @desc
+# @param ip - IP to check, already sanitized
+# @param bl - optional blacklist to check it through
+#
+# if bl isn't chosen, it will check
+# all blacklists in the config
+
         
         
+        
+    
+
 class DNSbl(callbacks.Plugin):
     """DNS Blacklist checker"""
     threaded = True
-    
+
+    def _checkbl(self, ip, bl=None):
+        config = ConfigParser.ConfigParser()
+        plugins_dir = conf.supybot.directories.plugins()
+        cfgfile = plugins_dir[0]+'/DNSbl/local/bls.ini'
+        
+        config.read(cfgfile)
+        
+        ip = ip.split('.')
+        ip.reverse()
+        ip = '.'.join(ip)
+        if bl:
+            recordstring = ip+'.'+bl
+        else:
+            
+            result = []
+            for name, blacklist in config.items('blacklists'):
+                recordstring = ip+'.'+blacklist
+                for rdata in dns.query(recordstring, 'A')
+        return result
+        
     def check(self, irc, msg, args, ip, dnsbl):
         """<ip/host>
         
         Perform a dnsbl check
         """
-        result = makeIP(ip)
+        
+        ip = makeIP(ip)
+        result = self._checkbl(ip, dnsbl)
         irc.reply(result)
         
     check = wrap(check, ['somethingWithoutSpaces', optional('somethingWithoutSpaces')])
