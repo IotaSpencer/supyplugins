@@ -119,7 +119,7 @@ class DNSbl(callbacks.Plugin):
         return enddict
         
     def check(self, irc, msg, args, ip, dnsbl):
-        """<ip/host>
+        """<ip/host> [<dnsbl>]
         
         Perform a dnsbl check
         """
