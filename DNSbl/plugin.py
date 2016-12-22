@@ -171,6 +171,22 @@ class DNSbl(callbacks.Plugin):
             except NoSectionError:
                 irc.error("Blacklist %s does not exist in config." % bl)
         remrec = wrap(remrec, ['admin', 'somethingWithoutSpaces', 'somethingWithoutSpaces'])
+        
+        def listrecs(self, irc, msg, args, bl):
+            """<blacklist name>
+            
+            Lists record replies for the given blacklist.
+            """
+            config = self.config
+            config.read(self.cfgfile)
+            records = []
+            for k,v in config.items('%s' % (bl)):
+                records.append('%s - %s' % (k, v))
+            msg_bls = 'Records: %s' % (' \xB7 '.join(records))
+            irc.reply(msg_bls, prefixNick=False)
+            
+        listrecs = wrap(listrecs, ['admin', 'somethingWithoutSpaces'])
+        
 Class = DNSbl
 
 
