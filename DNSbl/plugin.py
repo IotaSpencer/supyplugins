@@ -127,10 +127,10 @@ class DNSbl(callbacks.Plugin):
         ip = makeIP(ip)
         result = self._checkbl(ip, dnsbl)
         irc.reply("IP %s has been found in the following blacklists: %s" % (ip, ', '.join(result['zones'])), prefixNick=False)
-        irc.reply("IP %s: listed: %s/%s unlisted: %s/%s" % (ip, result['detected_in'], len(config['blacklists']), result['notdetected_in'], len(config['blacklists'])))
+        irc.reply("IP %s: listed: %s/%s unlisted: %s/%s" % (ip, result['detected_in'], len(config['blacklists']), result['notdetected_in'], len(config['blacklists'])), prefixNick=False)
         if result['replies']:
             for name, reply in result['replies'].items():
-                irc.reply("IP %s has been found in (%s) as a/an %s" % (ip, name, reply))
+                irc.reply("IP %s has been found in (%s) as a/an %s" % (ip, name, reply), prefixNick=False)
                 
     check = wrap(check, ['somethingWithoutSpaces', optional('somethingWithoutSpaces')])
     
