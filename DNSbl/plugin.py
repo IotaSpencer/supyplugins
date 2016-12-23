@@ -84,21 +84,24 @@ class DNSbl(callbacks.Plugin):
         ip = ip.split('.')
         ip.reverse()
         ip = '.'.join(ip)
-        if bl:
-            recordstring = ip+'.'+bl
-            try:
-                for rdata in dns.query(recordstring, 'A'):
-                    return str(rdata)
-            except exception.DNSException:
-                return -1
-        else:
-            result = []
-            zones = []
-            enddict = {'zones': [],
+        
+        enddict = {'zones': [],
                 'detected_in': 0,
                 'notdetected_in': 0,
                 'replies': {},                    
                 }
+        if bl:
+            bl = config['blacklists'][bl]
+            recordstring = ip+'.'+bl
+            try:
+                for rdata in dns.query(recordstring, 'A'):
+                    enddict['zones'] = bl
+            except exception.DNSException:
+                return 'notlisted'
+        else:
+            result = []
+            zones = []
+            
             for name, blacklist in config['blacklists'].items():
                 recordstring = ip+'.'+blacklist
                 try:
@@ -126,11 +129,14 @@ class DNSbl(callbacks.Plugin):
         
         ip = makeIP(ip)
         result = self._checkbl(ip, dnsbl)
-        irc.reply("IP %s has been found in the following blacklists: %s" % (ip, ', '.join(result['zones'])), prefixNick=False)
-        irc.reply("IP %s: listed: %s/%s unlisted: %s/%s" % (ip, result['detected_in'], len(config['blacklists']), result['notdetected_in'], len(config['blacklists'])), prefixNick=False)
-        if result['replies']:
-            for name, reply in result['replies'].items():
-                irc.reply("IP %s has been found in (%s) as a/an %s" % (ip, name, reply), prefixNick=False)
+        if dnsbl:
+        
+        else:
+            irc.reply("IP %s has been found in the following blacklists: %s" % (ip, ', '.join(result['zones'])), prefixNick=False)
+            irc.reply("IP %s: listed: %s/%s unlisted: %s/%s" % (ip, result['detected_in'], len(config['blacklists']), result['notdetected_in'], len(config['blacklists'])), prefixNick=False)
+            if result['replies']:
+                for name, reply in result['replies'].items():
+                    irc.reply("IP %s has been found in (%s) as a/an %s" % (ip, name, reply), prefixNick=False)
                 
     check = wrap(check, ['somethingWithoutSpaces', optional('somethingWithoutSpaces')])
     
