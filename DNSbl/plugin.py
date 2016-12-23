@@ -153,7 +153,7 @@ class DNSbl(callbacks.Plugin):
             config['blacklists'][blname] = bl
             irc.reply("Blacklist %s added with host %s." % (blname, bl), prefixNick=False)
             irc.reply(yaml.dump(config))
-            #yaml.dump(config, file(self.cfgfile, 'w'))
+                yaml.dump(config, file(self.cfgfile, 'w'), default_flow_style=False)
 
         add = wrap(add, ['admin', 'somethingWithoutSpaces', 'somethingWithoutSpaces'])
         
@@ -167,6 +167,7 @@ class DNSbl(callbacks.Plugin):
             try:
                 del config['blacklists'][bl]
                 del config[bl]
+                yaml.dump(config, file(self.cfgfile, 'w'), default_flow_style=False)
             except KeyError:
                 irc.error("Blacklist %s did not exist." % bl)
                 
@@ -214,6 +215,7 @@ class DNSbl(callbacks.Plugin):
             try:
                 del config[bl][record]
                 irc.reply("Reply removed.", prefixNick=False)
+                yaml.dump(config, file(self.cfgfile, 'w'), default_flow_style=False)
             except KeyError:
                 irc.error("Reply did not exist.")
         remrec = wrap(remrec, ['admin', 'somethingWithoutSpaces', 'somethingWithoutSpaces'])
