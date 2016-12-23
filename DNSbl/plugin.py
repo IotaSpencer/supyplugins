@@ -79,7 +79,7 @@ class DNSbl(callbacks.Plugin):
 
     def _checkbl(self, ip, bl=None):
         cfgfile = conf.supybot.directories.data.dirize('bls.yml')
-        config = yaml.load(cfgfile)
+        config = yaml.load(file(cfgfile, 'r'))
         
         ip = ip.split('.')
         ip.reverse()
@@ -110,7 +110,7 @@ class DNSbl(callbacks.Plugin):
                         reply = reply[3]
                         enddict['detected_in'] += 1
                         enddict['zones'].append(name)
-                        enddict['replies'][name] = config[name][reply]
+                        enddict['replies'][name] = config[name][int(reply)]
                 except exception.DNSException:
                     enddict['notdetected_in'] += 1
                     
@@ -127,7 +127,7 @@ class DNSbl(callbacks.Plugin):
         ip = makeIP(ip)
         result = self._checkbl(ip, dnsbl)
         irc.reply("IP %s has been found in the following blacklists: %s" % (ip, ', '.join(result['zones'])), prefixNick=False)
-        irc.reply("Otherwise, the given IP was run through %s blacklists, It was listed in %s blacklist(s), and unlisted in %s blacklist(s)." % (len(config.items('blacklists')), result['detected_in'], result['notdetected_in']))
+        irc.reply("IP %s: listed: %s/%s unlisted: %s/%s" % (ip, result['detected_in'], len(config['blacklists']), result['notdetected_in'], len(config['blacklists'])))
         if result['replies']:
             for name, reply in result['replies'].items():
                 irc.reply("IP %s has been found in (%s) as a/an %s" % (ip, name, reply))
