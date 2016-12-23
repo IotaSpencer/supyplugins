@@ -1,32 +1,33 @@
-"blacklists":
-    "dronebl": dnsbl.dronebl.org
-    "sectoor": tor.dnsbl.sectoor.de
-    "dan.me.uk": tor.dan.me.uk
-    "efnetrbl": rbl.efnet.org
-    "virbl": virbl.dnsbl.bit.nl
-"dronebl":
-    2: "Sample"
-    3: "IRC Drone"
-    5: "Bottler"
-    6: "Unknown spambot or drone"
-    7: "DDOS Drone"
-    8: "SOCKS Proxy"
-    9: "HTTP Proxy"
-    10: "ProxyChain"
-    13: "Brute force attackers"
-    14: "Open Wingate Proxy"
-    15: "Compromised router / gateway"
-    17: "Automatically determined botnet IPs experimental"
-    255: "Unknown"
-"sectoor":
-    1: "Tor Exit Server"
-"dan.me.uk":
-    100: "Tor Exit Server"
-"efnetrbl":
-    1: "Open proxy"
-    2: "Trojan spreader"
-    3: "Trojan infected client"
-    4: "TOR exit server"
-    5: "Drones / Flooding"
-"virbl":
-    2: "Virus"
+blacklists:
+  dan.me.uk: tor.dan.me.uk
+  dronebl: dnsbl.dronebl.org
+  efnetrbl: rbl.efnet.org
+  sectoor: tor.dnsbl.sectoor.de
+  virbl: virbl.dnsbl.bit.nl
+dan.me.uk:
+  100: Tor Exit Server
+dronebl:
+  1: Test Class
+  2: Sample
+  3: IRC Drone
+  5: Bottler
+  6: Unknown spambot or drone
+  7: DDOS Drone
+  8: SOCKS Proxy
+  9: HTTP Proxy
+  10: ProxyChain
+  13: Brute force attackers
+  14: Open Wingate Proxy
+  15: Compromised router / gateway
+  17: Automatically determined botnet IPs experimental
+  255: Unknown
+efnetrbl:
+  1: Open proxy
+  2: Trojan spreader
+  3: Trojan infected client
+  4: TOR exit server
+  5: Drones / Flooding
+sectoor:
+  1: Tor Exit Server
+virbl:
+  2: Virus
