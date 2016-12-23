@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 ###
 # Copyright (c) 2016, Ken Spencer
 # All rights reserved.
@@ -43,7 +44,7 @@ except ImportError:
 
 import dns.exception as exception
 import dns.resolver as dns
-import ConfigParser
+import yaml
 import re
 
 import supybot.conf as conf
@@ -77,11 +78,8 @@ class DNSbl(callbacks.Plugin):
     threaded = True
 
     def _checkbl(self, ip, bl=None):
-        config = ConfigParser.ConfigParser()
-        cfgfile = conf.supybot.directories.data.dirize('bls.ini')
-        
-        
-        config.read(cfgfile)
+        cfgfile = conf.supybot.directories.data.dirize('bls.yml')
+        config = yaml.load(cfgfile)
         
         ip = ip.split('.')
         ip.reverse()
@@ -101,7 +99,7 @@ class DNSbl(callbacks.Plugin):
                 'notdetected_in': 0,
                 'replies': {},                    
                 }
-            for name, blacklist in config.items('blacklists'):
+            for name, blacklist in config['blacklists'].items():
                 recordstring = ip+'.'+blacklist
                 try:
                     for rdata in dns.query(recordstring, 'A'):
@@ -112,7 +110,7 @@ class DNSbl(callbacks.Plugin):
                         reply = reply[3]
                         enddict['detected_in'] += 1
                         enddict['zones'].append(name)
-                        enddict['replies'][name] = config.get(name, reply)
+                        enddict['replies'][name] = config[name][reply]
                 except exception.DNSException:
                     enddict['notdetected_in'] += 1
                     
@@ -123,40 +121,40 @@ class DNSbl(callbacks.Plugin):
         
         Perform a dnsbl check
         """
-        config = ConfigParser.ConfigParser()
-        cfgfile = conf.supybot.directories.data.dirize('bls.ini')
-        config.read(cfgfile)
+        cfgfile = conf.supybot.directories.data.dirize('bls.yml')
+        config = yaml.load(file(self.cfgfile, 'r'))
         
         ip = makeIP(ip)
         result = self._checkbl(ip, dnsbl)
         irc.reply("IP %s has been found in the following blacklists: %s" % (ip, ', '.join(result['zones'])), prefixNick=False)
         irc.reply("Otherwise, the given IP was run through %s blacklists, It was listed in %s blacklist(s), and unlisted in %s blacklist(s)." % (len(config.items('blacklists')), result['detected_in'], result['notdetected_in']))
+        if result['replies']:
+            for name, reply in result['replies'].items():
+                irc.reply("IP %s has been found in (%s) as a/an %s" % (ip, name, reply))
+                
     check = wrap(check, ['somethingWithoutSpaces', optional('somethingWithoutSpaces')])
     
     class dnsbl(callbacks.Commands):
         """
         Allows adding, removing, and listing of dnsbls
         """
-        
-        config = ConfigParser.ConfigParser()
-        cfgfile = conf.supybot.directories.data.dirize('bls.ini')
+        cfgfile = conf.supybot.directories.data.dirize('bls.yml')
 
-        
         def add(self, irc, msg, args, blname, bl):
             """<name> <blacklist host>
             
-            Adds a blacklist into the plugins config
+            Adds a blacklist into the plugins config\
+            if it already exists it will be edited.
             """
-            config.read(self.cfgfile)
-            try:
-                config.add_section(blname)
-                config.set('blacklists', blname, bl)
-                irc.reply("Blacklist %s added with host %s." % (blname, bl), prefixNick=False)
-            except DuplicateSectionError:
-                irc.error("Blacklist already exists.")
-            
-            
-            
+            config = yaml.load(file(self.cfgfile, 'r'))
+
+
+            config[blname] = []
+            config['blacklists'][blname] = bl
+            irc.reply("Blacklist %s added with host %s." % (blname, bl), prefixNick=False)
+            irc.reply(yaml.dump(config))
+            #yaml.dump(config, file(self.cfgfile, 'w'))
+
         add = wrap(add, ['admin', 'somethingWithoutSpaces', 'somethingWithoutSpaces'])
         
         def rem(self, irc, msg, args, bl):
@@ -164,12 +162,13 @@ class DNSbl(callbacks.Plugin):
             
             Remove a blacklist
             """
-            config.read(self.cfgfile)
-            result = config.remove_section(bl)
-            if result == True:
-                irc.reply("Blacklist %s removed." % bl)
-            else:
-                irc.error("That blacklist did not exist.")
+            config = yaml.load(file(self.cfgfile, 'r'))
+            
+            try:
+                del config['blacklists'][bl]
+                del config[bl]
+            except KeyError:
+                irc.error("Blacklist %s did not exist." % bl)
                 
         rem = wrap(rem, ['admin', 'somethingWithoutSpaces'])
         
@@ -178,12 +177,12 @@ class DNSbl(callbacks.Plugin):
             
             Lists the blacklists in use
             """
-            config = self.config
-            config.read(self.cfgfile)
+            config = yaml.load(file(self.cfgfile, 'r'))
+            
             listbls = []
-            for k,v in config.items('blacklists'):
+            for k,v in config['blacklists'].items():
                 listbls.append('%s - %s' % (k, v))
-            msg_bls = 'Blacklists: %s' % (' \xB7 '.join(listbls))
+            msg_bls = 'Blacklists: %s' % (' / '.join(listbls))
             irc.reply(msg_bls, prefixNick=False)
             
         bls = wrap(bls, ['admin'])
@@ -193,28 +192,30 @@ class DNSbl(callbacks.Plugin):
             
             Add a reply for a record on the given blacklist
             """
-            config = self.config
-            config.read(self.cfgfile)
+            config = yaml.load(file(self.cfgfile, 'r'))
+
             try:
-                config.set(bl, record, rreply)
-            except NoSectionError:
+                config[bl][record] = rreply
+                irc.reply(config)
+                
+                yaml.dump(config, file(self.cfgfile, 'w'), default_flow_style=False)
+            except KeyError:
                 irc.error("That blacklist does not exist in the config.")
-        addrec = wrap(addrec, ['admin', 'somethingWithoutSpaces', 'somethingWithoutSpaces', 'text'])
+            
+        addrec = wrap(addrec, ['admin', 'somethingWithoutSpaces', 'int', 'something'])
         
         def remrec(self, irc, msg, args, bl, record):
             """<blacklist name> <reply answer>
             
             Removes a reply from the given blacklist
             """
-            config = self.config
-            config.read(self.cfgfile)
+            config = yaml.load(file(self.cfgfile, 'r'))
+            
             try:
-                if config.remove_option(bl, record):
-                    irc.reply("Reply removed.", prefixNick=False)
-            except NoOptionError:
-                irc.error("That reply did not exist.")
-            except NoSectionError:
-                irc.error("Blacklist %s does not exist in config." % bl)
+                del config[bl][record]
+                irc.reply("Reply removed.", prefixNick=False)
+            except KeyError:
+                irc.error("Reply did not exist.")
         remrec = wrap(remrec, ['admin', 'somethingWithoutSpaces', 'somethingWithoutSpaces'])
         
         def listrecs(self, irc, msg, args, bl):
@@ -222,17 +223,15 @@ class DNSbl(callbacks.Plugin):
             
             Lists record replies for the given blacklist.
             """
-            config = self.config
-            config.read(self.cfgfile)
+            config = yaml.load(file(self.cfgfile, 'r'))
+
             records = []
-            for k,v in config.items('%s' % (bl)):
-                records.append('%s - %s' % (k, v))
-            msg_bls = 'Records: %s' % (' \xB7 '.join(records))
+            for k in sorted(config[bl].keys()):
+                records.append('%s - %s' % (k, config[bl][k]))
+            msg_bls = 'Records: %s' % (' / '.join(records))
             irc.reply(msg_bls, prefixNick=False)
             
         listrecs = wrap(listrecs, ['admin', 'somethingWithoutSpaces'])
         
 Class = DNSbl
-
-
 # vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
