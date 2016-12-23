@@ -122,7 +122,7 @@ class DNSbl(callbacks.Plugin):
         Perform a dnsbl check
         """
         cfgfile = conf.supybot.directories.data.dirize('bls.yml')
-        config = yaml.load(file(self.cfgfile, 'r'))
+        config = yaml.load(file(cfgfile, 'r'))
         
         ip = makeIP(ip)
         result = self._checkbl(ip, dnsbl)
@@ -153,7 +153,7 @@ class DNSbl(callbacks.Plugin):
             config['blacklists'][blname] = bl
             irc.reply("Blacklist %s added with host %s." % (blname, bl), prefixNick=False)
             irc.reply(yaml.dump(config))
-                yaml.dump(config, file(self.cfgfile, 'w'), default_flow_style=False)
+            yaml.dump(config, file(self.cfgfile, 'w'), default_flow_style=False)
 
         add = wrap(add, ['admin', 'somethingWithoutSpaces', 'somethingWithoutSpaces'])
         
@@ -183,7 +183,7 @@ class DNSbl(callbacks.Plugin):
             listbls = []
             for k,v in config['blacklists'].items():
                 listbls.append('%s - %s' % (k, v))
-            msg_bls = 'Blacklists: %s' % (' / '.join(listbls))
+            msg_bls = 'Blacklists: %s' % (' \xB7 '.join(listbls))
             irc.reply(msg_bls, prefixNick=False)
             
         bls = wrap(bls, ['admin'])
@@ -230,7 +230,7 @@ class DNSbl(callbacks.Plugin):
             records = []
             for k in sorted(config[bl].keys()):
                 records.append('%s - %s' % (k, config[bl][k]))
-            msg_bls = 'Records: %s' % (' / '.join(records))
+            msg_bls = 'Records: %s' % (' \xB7 '.join(records))
             irc.reply(msg_bls, prefixNick=False)
             
         listrecs = wrap(listrecs, ['admin', 'somethingWithoutSpaces'])
