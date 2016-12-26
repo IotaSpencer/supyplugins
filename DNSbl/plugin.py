@@ -95,7 +95,11 @@ class DNSbl(callbacks.Plugin):
             recordstring = ip+'.'+bl
             try:
                 for rdata in dns.query(recordstring, 'A'):
+                    reply = str(rdata)
+                    reply = reply.split('.')
+                    reply = reply[3]
                     enddict['zones'] = bl
+                    enddict['replies'][name] = config[name][reply]
             except exception.DNSException:
                 return 'notlisted'
         else:
@@ -130,7 +134,8 @@ class DNSbl(callbacks.Plugin):
         ip = makeIP(ip)
         result = self._checkbl(ip, dnsbl)
         if dnsbl:
-        
+            for name, reply in result['replies'].items():
+                irc.reply("IP %s has been found in the requested blacklist. Its reply is '%s'" % (ip, reply))
         else:
             irc.reply("IP %s has been found in the following blacklists: %s" % (ip, ', '.join(result['zones'])), prefixNick=False)
             irc.reply("IP %s: listed: %s/%s unlisted: %s/%s" % (ip, result['detected_in'], len(config['blacklists']), result['notdetected_in'], len(config['blacklists'])), prefixNick=False)
