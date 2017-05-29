@@ -43,7 +43,12 @@ _ = PluginInternationalization('UndernetX')
 class UndernetX(callbacks.Plugin):
     """Logins to Undernet's X Service"""
     threaded = True
-
+    # Similar to Services->Identify
+    def login(self, irc, msg, args):
+        """takes no arguments
+        Logins to Undernet's X Service"""
+        pass
+    login = wrap(login, ['admin'])
 
 Class = UndernetX
 
