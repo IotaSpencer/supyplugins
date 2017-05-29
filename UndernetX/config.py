@@ -49,6 +49,13 @@ UndernetX = conf.registerPlugin('UndernetX')
 #     registry.Boolean(False, _("""Help for someConfigVariableName.""")))
 conf.registerGlobalValue(UndernetX, 'modeXOnID',
     registry.Boolean(True, _("""Whether or not to mode +x on ID""")))
-conf.registerGlobalValue(UndernetX, '')
+conf.registerGroup(UndernetX, 'auth')
+# /msg X@channels.undernet.org login usernme password
+conf.registerGlobalValue(UndernetX.auth, 'username',
+    registry.String("", _("""Username for X""")))
+conf.registerGlobalValue(UndernetX.auth, 'password',
+    registry.String("", _("""Password for X""")))
+conf.registerGlobalValue(UndernetX.auth, 'xservice',
+    registry.String("X@channels.undernet.org", _("""XService hostmask""")))
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
