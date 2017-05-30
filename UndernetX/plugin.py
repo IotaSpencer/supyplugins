@@ -49,10 +49,9 @@ class UndernetX(callbacks.Plugin):
         instance = self
         self.__parent = super(UndernetX, self)
         callbacks.Plugin.__init__(self, irc)
-
         instance.irc = irc
-        instance.logged_in = False
         instance.logging_in = False
+
     def _login(self, irc):
         username = self.registryValue('auth.username')
         password = self.registryValue('auth.password')
@@ -61,14 +60,12 @@ class UndernetX(callbacks.Plugin):
             irc.queueMsg(ircmsgs.privmsg(xserv, "login {} {}".format(username, password)))
 
     def doNotice(self, irc, msg):
-        if msg.prefix == self.registryValue('auth.xservice'):
+        if 'cservice@undernet.org' in msg.prefix:
             if 'AUTHENTICATION SUCCESSFUL as' in msg.args[1]:
-                instance.logged_in = True
                 modex = self.registryValue('modeXonID')
                 if modex:
                     irc.queueMsg(ircmsgs.IrcMsg("MODE {} +x".format(irc.nick)))
             else:
-                instance.logged_in = False
                 log.info("[UndernetX] Unable to login")
                 return
 
