@@ -87,6 +87,7 @@ class UndernetX(callbacks.Plugin):
                 modex = self.registryValue('modeXonID')
                 if modex:
                     irc.queueMsg(ircmsgs.IrcMsg("MODE {} +x".format(irc.nick)))
+
             else:
                 log.info("[UndernetX] Unable to login")
                 return
