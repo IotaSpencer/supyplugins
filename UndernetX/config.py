@@ -57,5 +57,7 @@ conf.registerGlobalValue(UndernetX.auth, 'password',
     registry.String("", _("""Password for X""")))
 conf.registerGlobalValue(UndernetX.auth, 'xservice',
     registry.String("X@channels.undernet.org", _("""XService hostmask""")))
+conf.registerGlobalValue(UndernetX.auth, 'noJoinsUntilAuthed',
+    registry.String(True, _("""Don't join until we're authed.""")))
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:

@@ -51,6 +51,27 @@ class UndernetX(callbacks.Plugin):
         callbacks.Plugin.__init__(self, irc)
         instance.irc = irc
         instance.logging_in = False
+        self.channels = []
+        self.sentGhost = None
+        self.authed = False
+        self.waitingJoins = {}
+        self.reset()
+
+    def reset(self):
+        self.channels = []
+        self.authed = False
+        self.waitingJoins = {}
+
+    def outFilter(self, irc, msg):
+        if msg.command == 'JOIN' and not self.disabled(irc):
+            if not self.authed:
+                if self.registryValue('auth.noJoinsUntilAuthed'):
+                    self.log.info('Holding JOIN to %s until authed.',
+                                  msg.args[0])
+                    self.waitingJoins.setdefault(irc.network, [])
+                    self.waitingJoins[irc.network].append(msg)
+                    return None
+        return msg
 
     def _login(self, irc):
         username = self.registryValue('auth.username')
@@ -62,12 +83,16 @@ class UndernetX(callbacks.Plugin):
     def doNotice(self, irc, msg):
         if 'cservice@undernet.org' in msg.prefix:
             if 'AUTHENTICATION SUCCESSFUL as' in msg.args[1]:
+                self.authed = True
                 modex = self.registryValue('modeXonID')
                 if modex:
                     irc.queueMsg(ircmsgs.IrcMsg("MODE {} +x".format(irc.nick)))
             else:
                 log.info("[UndernetX] Unable to login")
                 return
+        else:
+            if 'AUTHENTICATION SUCCESSFUL as' in msg.args[1]:
+                log.warning("Someone is impersonating X!")
 
     def do376(self, irc, msg):
         """Watch for the MOTD and login if we can"""
