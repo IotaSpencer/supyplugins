@@ -50,21 +50,24 @@ class UndernetX(callbacks.Plugin):
         instance = self
         instance.irc = irc
         instance.logged_in = False
+        instance.logging_in = False
     def _login(self, irc):
         username = self.registryValue('auth.username')
         password = self.registryValue('auth.password')
         xserv = self.registryValue('auth.xservice')
-        modex = self.registryValue('modeXonID')
-        irc.queueMsg(ircmsgs.privmsg(xserv, "login {} {}".format(username, password)))
+        if instance.logging_in = True:
+            irc.queueMsg(ircmsgs.privmsg(xserv, "login {} {}".format(username, password)))
     def doNotice(self, irc, msg):
         if msg.prefix == self.registryValue('auth.xservice'):
             if 'AUTHENTICATION SUCCESSFUL as' in msg.args[1]:
                 instance.logged_in = True
+                modex = self.registryValue('modeXonID')
+                if modex:
+                    irc.queueMsg(ircmsgs.IrcMsg("MODE {} +x".format(irc.nick)))
             else:
                 instance.logged_in = False
-                log.info("")
-
-
+                log.info("[UndernetX] Unable to login")
+                return
     def do376(self, irc, msg):
         """Watch for the MOTD and login if we can"""
         if self.registryValue('auth.username') and self.registryValue('auto.password'):
@@ -72,13 +75,22 @@ class UndernetX(callbacks.Plugin):
         else
             log.warning("username and password not set, this plugin will not work")
             return
+        instance.logging_in = True
         self._login(irc)
+        instance.logging_in = False
 
     # Similar to Services->Identify
     def login(self, irc, msg, args):
         """takes no arguments
         Logins to Undernet's X Service"""
-
+        if self.registryValue('auth.username') and self.registryValue('auth.password'):
+            log.info("Attempting login to XService")
+            instance.logging_in = True
+        else:
+            log.warning("username and password not set, this plugin will not work")
+            return
+        self._login(irc)
+        instance.logging_in = False
     login = wrap(login, ['admin'])
 
 Class = UndernetX
