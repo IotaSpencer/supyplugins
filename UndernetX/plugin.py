@@ -45,8 +45,8 @@ class UndernetX(callbacks.Plugin):
     threaded = True
 
     def __init__(self, irc):
-        instance = self
         global instance
+        instance = self
         self.__parent = super(UndernetX, self)
         callbacks.Plugin.__init__(self, irc)
 
