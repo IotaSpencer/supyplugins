@@ -43,11 +43,13 @@ _ = PluginInternationalization('UndernetX')
 class UndernetX(callbacks.Plugin):
     """Logins to Undernet's X Service"""
     threaded = True
+
     def __init__(self, irc):
+        instance = self
         global instance
         self.__parent = super(UndernetX, self)
         callbacks.Plugin.__init__(self, irc)
-        instance = self
+
         instance.irc = irc
         instance.logged_in = False
         instance.logging_in = False
@@ -55,8 +57,9 @@ class UndernetX(callbacks.Plugin):
         username = self.registryValue('auth.username')
         password = self.registryValue('auth.password')
         xserv = self.registryValue('auth.xservice')
-        if instance.logging_in == True:
+        if instance.logging_in:
             irc.queueMsg(ircmsgs.privmsg(xserv, "login {} {}".format(username, password)))
+
     def doNotice(self, irc, msg):
         if msg.prefix == self.registryValue('auth.xservice'):
             if 'AUTHENTICATION SUCCESSFUL as' in msg.args[1]:
@@ -68,11 +71,12 @@ class UndernetX(callbacks.Plugin):
                 instance.logged_in = False
                 log.info("[UndernetX] Unable to login")
                 return
+
     def do376(self, irc, msg):
         """Watch for the MOTD and login if we can"""
         if self.registryValue('auth.username') and self.registryValue('auto.password'):
             log.info("Attempting login to XService")
-        else
+        else:
             log.warning("username and password not set, this plugin will not work")
             return
         instance.logging_in = True
