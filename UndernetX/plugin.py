@@ -57,7 +57,7 @@ class UndernetX(callbacks.Plugin):
         password = self.registryValue('auth.password')
         xserv = self.registryValue('auth.xservice')
         if instance.logging_in:
-            irc.queueMsg(ircmsgs.privmsg(xserv, "login {} {}".format(username, password)))
+            irc.sendMsg(ircmsgs.privmsg(xserv, "login {} {}".format(username, password)))
 
     def doNotice(self, irc, msg):
         if 'cservice@undernet.org' in msg.prefix:
