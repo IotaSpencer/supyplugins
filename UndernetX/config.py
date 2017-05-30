@@ -47,10 +47,10 @@ UndernetX = conf.registerPlugin('UndernetX')
 # This is where your configuration variables (if any) should go.  For example:
 # conf.registerGlobalValue(UndernetX, 'someConfigVariableName',
 #     registry.Boolean(False, _("""Help for someConfigVariableName.""")))
-conf.registerGlobalValue(UndernetX, 'modeXOnID',
+conf.registerGlobalValue(UndernetX, 'modeXonID',
     registry.Boolean(True, _("""Whether or not to mode +x on ID""")))
 conf.registerGroup(UndernetX, 'auth')
-# /msg X@channels.undernet.org login usernme password
+# /msg X@channels.undernet.org login username password
 conf.registerGlobalValue(UndernetX.auth, 'username',
     registry.String("", _("""Username for X""")))
 conf.registerGlobalValue(UndernetX.auth, 'password',

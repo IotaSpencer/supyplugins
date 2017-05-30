@@ -1,5 +1,5 @@
 ###
-# Copyright (c) 2013, Ken Spencer
+# Copyright (c) 2017, Ken Spencer
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,8 +27,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 ###
-
-from supybot import ircmsgs
+import supybot.log as log
+import supybot.ircmsgs as ircmsgs
 import supybot.utils as utils
 from supybot.commands import *
 import supybot.plugins as plugins
@@ -43,15 +43,44 @@ _ = PluginInternationalization('UndernetX')
 class UndernetX(callbacks.Plugin):
     """Logins to Undernet's X Service"""
     threaded = True
+    def __init__(self, irc):
+        global instance
+        self.__parent = super(UndernetX, self)
+        callbacks.Plugin.__init__(self, irc)
+        instance = self
+        instance.irc = irc
+        instance.logged_in = False
+    def _login(self, irc):
+        username = self.registryValue('auth.username')
+        password = self.registryValue('auth.password')
+        xserv = self.registryValue('auth.xservice')
+        modex = self.registryValue('modeXonID')
+        irc.queueMsg(ircmsgs.privmsg(xserv, "login {} {}".format(username, password)))
+    def doNotice(self, irc, msg):
+        if msg.prefix == self.registryValue('auth.xservice'):
+            if 'AUTHENTICATION SUCCESSFUL as' in msg.args[1]:
+                instance.logged_in = True
+            else:
+                instance.logged_in = False
+                log.info("")
+
+
+    def do376(self, irc, msg):
+        """Watch for the MOTD and login if we can"""
+        if self.registryValue('auth.username') and self.registryValue('auto.password'):
+            log.info("Attempting login to XService")
+        else
+            log.warning("username and password not set, this plugin will not work")
+            return
+        self._login(irc)
+
     # Similar to Services->Identify
     def login(self, irc, msg, args):
         """takes no arguments
         Logins to Undernet's X Service"""
-        pass
+
     login = wrap(login, ['admin'])
 
 Class = UndernetX
 
-
 # vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
-
