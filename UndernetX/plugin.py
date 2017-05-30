@@ -74,7 +74,7 @@ class UndernetX(callbacks.Plugin):
 
     def do376(self, irc, msg):
         """Watch for the MOTD and login if we can"""
-        if self.registryValue('auth.username') and self.registryValue('auto.password'):
+        if self.registryValue('auth.username') and self.registryValue('auth.password'):
             log.info("Attempting login to XService")
         else:
             log.warning("username and password not set, this plugin will not work")
