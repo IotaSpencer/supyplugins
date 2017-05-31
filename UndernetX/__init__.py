@@ -41,7 +41,7 @@ import supybot.world as world
 __version__ = "0.1"
 
 # XXX Replace this with an appropriate author or supybot.Author instance.
-__author__ = "Ken Spencer"
+__author__ = supybot.Author("Ken Spencer", "kspencer", "ken@electrocode.net")
 
 # This is a dictionary mapping supybot.Author instances to lists of
 # contributions.
