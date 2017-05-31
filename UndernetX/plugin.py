@@ -62,6 +62,13 @@ class UndernetX(callbacks.Plugin):
         self.authed = False
         self.waitingJoins = {}
 
+    def disabled(self, irc):
+        disabled = self.registryValue('disabledNetworks')
+        if irc.network in disabled or \
+           irc.state.supported.get('NETWORK', '') in disabled:
+            return True
+        return False
+
     def outFilter(self, irc, msg):
         if msg.command == 'JOIN' and not self.disabled(irc):
             if not self.authed:

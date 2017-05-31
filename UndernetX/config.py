@@ -30,6 +30,7 @@
 
 import supybot.conf as conf
 import supybot.registry as registry
+import supybot.ircutils as ircutils
 from supybot.i18n import PluginInternationalization, internationalizeDocstring
 
 _ = PluginInternationalization('UndernetX')
@@ -49,6 +50,14 @@ UndernetX = conf.registerPlugin('UndernetX')
 #     registry.Boolean(False, _("""Help for someConfigVariableName.""")))
 conf.registerGlobalValue(UndernetX, 'modeXonID',
     registry.Boolean(True, _("""Whether or not to mode +x on ID""")))
+
+
+class Networks(registry.SpaceSeparatedSetOfStrings):
+    List = ircutils.IrcSet
+
+conf.registerGlobalValue(UndernetX, 'disabledNetworks',
+    Networks(_('QuakeNet').split(), _("""Determines what networks this plugin
+    will be disabled on.""")))
 conf.registerGroup(UndernetX, 'auth')
 # /msg X@channels.undernet.org login username password
 conf.registerGlobalValue(UndernetX.auth, 'username',
