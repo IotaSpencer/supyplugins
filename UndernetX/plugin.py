@@ -84,8 +84,7 @@ class UndernetX(callbacks.Plugin):
         username = self.registryValue('auth.username')
         password = self.registryValue('auth.password')
         xserv = self.registryValue('auth.xservice')
-        if instance.logging_in:
-            irc.sendMsg(ircmsgs.privmsg(xserv, "login {} {}".format(username, password)))
+        irc.sendMsg(ircmsgs.privmsg(xserv, "login {} {}".format(username, password)))
 
     def doNotice(self, irc, msg):
         if 'cservice@undernet.org' in msg.prefix:
@@ -109,9 +108,7 @@ class UndernetX(callbacks.Plugin):
         else:
             log.warning("username and password not set, this plugin will not work")
             return
-        instance.logging_in = True
         self._login(irc)
-        instance.logging_in = False
 
     # Similar to Services->Identify
     def login(self, irc, msg, args):
@@ -119,12 +116,10 @@ class UndernetX(callbacks.Plugin):
         Logins to Undernet's X Service"""
         if self.registryValue('auth.username') and self.registryValue('auth.password'):
             log.info("Attempting login to XService")
-            instance.logging_in = True
         else:
             log.warning("username and password not set, this plugin will not work")
             return
         self._login(irc)
-        instance.logging_in = False
     login = wrap(login, ['admin'])
 
 Class = UndernetX
