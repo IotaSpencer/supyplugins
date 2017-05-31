@@ -56,7 +56,7 @@ class Networks(registry.SpaceSeparatedSetOfStrings):
     List = ircutils.IrcSet
 
 conf.registerGlobalValue(UndernetX, 'disabledNetworks',
-    registry.CommaSeparatedSetOfStrings(""), _("""Determines what networks this plugin
+    registry.CommaSeparatedSetOfStrings("", _("""Determines what networks this plugin
     will be disabled on.""")))
 conf.registerGroup(UndernetX, 'auth')
 # /msg X@channels.undernet.org login username password
