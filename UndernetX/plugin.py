@@ -50,11 +50,6 @@ class UndernetX(callbacks.Plugin):
         self.__parent = super(UndernetX, self)
         callbacks.Plugin.__init__(self, irc)
         instance.irc = irc
-        instance.logging_in = False
-        self.channels = []
-        self.sentGhost = None
-        self.authed = False
-        self.waitingJoins = {}
         self.reset()
 
     def reset(self):
@@ -62,24 +57,19 @@ class UndernetX(callbacks.Plugin):
         self.authed = False
         self.waitingJoins = {}
 
-    def disabled(self, irc):
-        disabled = self.registryValue('disabledNetworks')
-        if irc.network in disabled or \
-           irc.state.supported.get('NETWORK', '') in disabled:
-            return True
-        return False
-
     def outFilter(self, irc, msg):
-        if msg.command == 'JOIN' and not self.disabled(irc):
-            if not self.authed:
-                if self.registryValue('auth.noJoinsUntilAuthed'):
-                    self.log.info('Holding JOIN to %s until authed.',
-                                  msg.args[0])
-                    self.waitingJoins.setdefault(irc.network, [])
-                    self.waitingJoins[irc.network].append(msg)
-                    return None
-        return msg
-
+        if irc.state.supported.get('NETWORK', '') == 'UnderNet':
+            if msg.command == 'JOIN':
+                if not self.authed:
+                    if self.registryValue('auth.noJoinsUntilAuthed'):
+                        self.log.info('Holding JOIN to %s until authed.',
+                                msg.args[0])
+                        self.waitingJoins.setdefault(irc.network, [])
+                        self.waitingJoins[irc.network].append(msg)
+                        return None
+            return msg
+        else:
+            log.debug("Not on UnderNet, ignoring outfilter")
     def _login(self, irc):
         username = self.registryValue('auth.username')
         password = self.registryValue('auth.password')
@@ -87,39 +77,46 @@ class UndernetX(callbacks.Plugin):
         irc.sendMsg(ircmsgs.privmsg(xserv, "login {} {}".format(username, password)))
 
     def doNotice(self, irc, msg):
-        if 'cservice@undernet.org' in msg.prefix:
-            if 'AUTHENTICATION SUCCESSFUL as' in msg.args[1]:
-                self.authed = True
-                modex = self.registryValue('modeXonID')
-                if modex:
-                    irc.queueMsg(ircmsgs.IrcMsg("MODE {} +x".format(irc.nick)))
+        if irc.state.supported.get('NETWORK', '') == 'UnderNet':
+            if 'cservice@undernet.org' in msg.prefix:
+                if 'AUTHENTICATION SUCCESSFUL as' in msg.args[1]:
+                    self.authed = True
+                    modex = self.registryValue('modeXonID')
+                    if modex:
+                        irc.sendMsg(ircmsgs.IrcMsg("MODE {} +x".format(irc.nick)))
 
+                else:
+                    log.info("[UndernetX] Unable to login")
+                    return
             else:
-                log.info("[UndernetX] Unable to login")
-                return
+                if 'AUTHENTICATION SUCCESSFUL as' in msg.args[1]:
+                    log.warning("Someone is impersonating X!")
         else:
-            if 'AUTHENTICATION SUCCESSFUL as' in msg.args[1]:
-                log.warning("Someone is impersonating X!")
-
+            log.debug("Notice isn't from UnderNet.. Ignoring")
     def do376(self, irc, msg):
         """Watch for the MOTD and login if we can"""
-        if self.registryValue('auth.username') and self.registryValue('auth.password'):
-            log.info("Attempting login to XService")
-        else:
-            log.warning("username and password not set, this plugin will not work")
-            return
-        self._login(irc)
+        if irc.state.supported.get('NETWORK', '') == 'UnderNet':
+            if self.registryValue('auth.username') and self.registryValue('auth.password'):
+                log.info("Attempting login to XService")
+            else:
+                log.warning("username and password not set, this plugin will not work")
+                return
+            self._login(irc)
 
     # Similar to Services->Identify
     def login(self, irc, msg, args):
         """takes no arguments
         Logins to Undernet's X Service"""
-        if self.registryValue('auth.username') and self.registryValue('auth.password'):
-            log.info("Attempting login to XService")
+        if irc.state.supported.get('NETWORK', '') == 'UnderNet':
+            if self.registryValue('auth.username') and self.registryValue('auth.password'):
+                log.info("Attempting login to XService")
+            else:
+                log.warning("username and password not set, this plugin will not work")
+                return
+            self._login(irc)
         else:
-            log.warning("username and password not set, this plugin will not work")
-            return
-        self._login(irc)
+            log.error("We're not on UnderNet, we can't use this.")
+            irc.error("We're not on UnderNet, this is useless.")
     login = wrap(login, ['admin'])
 
 Class = UndernetX

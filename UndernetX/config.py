@@ -35,6 +35,7 @@ from supybot.i18n import PluginInternationalization, internationalizeDocstring
 
 _ = PluginInternationalization('UndernetX')
 
+
 def configure(advanced):
     # This will be called by supybot to configure this module.  advanced is
     # a bool that specifies whether the user identified himself as an advanced
@@ -49,24 +50,16 @@ UndernetX = conf.registerPlugin('UndernetX')
 # conf.registerGlobalValue(UndernetX, 'someConfigVariableName',
 #     registry.Boolean(False, _("""Help for someConfigVariableName.""")))
 conf.registerGlobalValue(UndernetX, 'modeXonID',
-    registry.Boolean(True, _("""Whether or not to mode +x on ID""")))
-
-
-class Networks(registry.SpaceSeparatedSetOfStrings):
-    List = ircutils.IrcSet
-
-conf.registerGlobalValue(UndernetX, 'disabledNetworks',
-    registry.CommaSeparatedSetOfStrings("", _("""Determines what networks this plugin
-    will be disabled on.""")))
+                         registry.Boolean(True, _("""Whether or not to mode +x on ID""")))
 conf.registerGroup(UndernetX, 'auth')
 # /msg X@channels.undernet.org login username password
 conf.registerGlobalValue(UndernetX.auth, 'username',
-    registry.String("", _("""Username for X""")))
+                         registry.String("", _("""Username for X""")))
 conf.registerGlobalValue(UndernetX.auth, 'password',
-    registry.String("", _("""Password for X""")))
+                         registry.String("", _("""Password for X""")))
 conf.registerGlobalValue(UndernetX.auth, 'xservice',
-    registry.String("X@channels.undernet.org", _("""XService hostmask""")))
+                         registry.String("X@channels.undernet.org", _("""XService hostmask""")))
 conf.registerGlobalValue(UndernetX.auth, 'noJoinsUntilAuthed',
-    registry.Boolean(True, _("""Don't join until we're authed.""")))
+                         registry.Boolean(True, _("""Don't join until we're authed.""")))
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
