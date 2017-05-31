@@ -59,14 +59,16 @@ class UndernetX(callbacks.Plugin):
 
     def doNotice(self, irc, msg):
         if irc.state.supported.get('NETWORK', '') == 'UnderNet':
-            if 'cservice@undernet.org' in msg.prefix:
+            if 'X!cservice@undernet.org' in msg.prefix:
                 if 'AUTHENTICATION SUCCESSFUL as' in msg.args[1]:
+                    log.info("Successfully authed to X.")
                     modex = self.registryValue('modeXonID')
                     if modex:
+                        log.info("Setting +x")
                         irc.sendMsg(ircmsgs.IrcMsg("MODE {} +x".format(irc.nick)))
 
                 else:
-                    log.info("[UndernetX] Unable to login")
+                    log.info("Received a NOTICE from X. msg: {}".format(msg.args[1]))
                     return
             else:
                 if 'AUTHENTICATION SUCCESSFUL as' in msg.args[1]:
