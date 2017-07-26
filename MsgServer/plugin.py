@@ -47,7 +47,7 @@ except ImportError:
 
 class ServerCallback(httpserver.SupyHTTPServerCallback):
     name = "MSG Server"
-    defaultResponse = MsgServer.registryValue(MsgServer.Proxy, 'serverKey')
+    defaultResponse = 'NotImplemented!'
 
 class MsgServer(callbacks.Plugin):
     """Send Msgs to a self hosted service."""
