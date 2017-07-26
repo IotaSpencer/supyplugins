@@ -36,6 +36,7 @@ import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
 import supybot.httpserver as httpserver
 import supybot.ircmsgs as ircmsgs
+import supybot.log as log
 
 try:
     from supybot.i18n import PluginInternationalization
@@ -52,8 +53,10 @@ class ServerCallback(httpserver.SupyHTTPServerCallback):
 
     def doPost(self, handler, path, form):
         if path == '/':
-            self.plugin.doHTTPMsg(form)
+            headers = self.headers
+            self.plugin.doHTTPMsg(handler, headers, form)
             handler.send_response(200)
+            handler.end_headers()
             handler.wfile.write('Thanks!')
             return
 
@@ -91,8 +94,10 @@ class MsgServer(callbacks.Plugin):
 
         irc.reply(author)
 
-    def doHTTPMsg(self, msg):
+    def doHTTPMsg(self, handler, headers, msg):
         irc = world.getIrc(self.registryValue('adminNet'))
+        log.info("headers: {}".format(headers))
+        log.info("text: {}".format(msg))
         irc.queueMsg(ircmsgs.privmsg('Iota', msg))
     info = wrap(info)
 Class = MsgServer
