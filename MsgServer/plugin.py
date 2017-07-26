@@ -51,10 +51,11 @@ class ServerCallback(httpserver.SupyHTTPServerCallback):
     defaultResponse = 'NotImplemented!'
 
     def doPost(self, handler, path, form):
-        self.plugin.doHTTPMsg(form)
-        self.send_response(200)
-        self.wfile.write('Thanks!')
-        return
+        if path == '/':
+            self.plugin.doHTTPMsg(form)
+            self.send_response(200)
+            self.wfile.write('Thanks!')
+            return
 
 instance = None
 class MsgServer(callbacks.Plugin):
