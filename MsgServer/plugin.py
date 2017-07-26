@@ -55,9 +55,10 @@ class ServerCallback(httpserver.SupyHTTPServerCallback):
         if path == '/':
             headers = self.headers
             self.plugin.doHTTPMsg(handler, headers, form)
+            log.info("{}".format(form))
             handler.send_response(200)
             handler.end_headers()
-            handler.wfile.write('Thanks!')
+            handler.wfile.write(b"""Thanks!""")
             return
 
 instance = None
