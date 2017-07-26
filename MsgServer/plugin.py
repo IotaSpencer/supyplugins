@@ -51,7 +51,7 @@ class ServerCallback(httpserver.SupyHTTPServerCallback):
     defaultResponse = 'NotImplemented!'
 
     def doPost(self, handler, path, form):
-        self.plugin
+        self.plugin.doHTTPMsg(form)
 instance = None
 class MsgServer(callbacks.Plugin):
     """Send Msgs to a self hosted service."""
