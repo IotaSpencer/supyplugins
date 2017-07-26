@@ -29,12 +29,13 @@
 ###
 
 import supybot.utils as utils
-import supybot.world
+import supybot.world as world
 from supybot.commands import *
 import supybot.plugins as plugins
 import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
 import supybot.httpserver as httpserver
+import supybot.ircmsgs as ircmsgs
 
 try:
     from supybot.i18n import PluginInternationalization
@@ -49,22 +50,30 @@ class ServerCallback(httpserver.SupyHTTPServerCallback):
     name = "MSG Server"
     defaultResponse = 'NotImplemented!'
 
+    def doPost(self, handler, path, form):
+        self.plugin
+instance = None
 class MsgServer(callbacks.Plugin):
     """Send Msgs to a self hosted service."""
     threaded = True
 
     def __init__(self, irc):
         # Some stuff needed by Supybot
+        global instance
         self.__parent = super(MsgServer, self)
+        instance = self
         callbacks.Plugin.__init__(self, irc)
 
         # registering the callback
         callback = ServerCallback()  # create an instance of the callback
+        callback.plugin = self
         httpserver.hook('msgserver', callback)  # register the callback at `/msgserver`
+        for cb in self.cbs:
+            cb.plugin = self
 
     def die(self):
         # unregister the callback
-        httpserver.unhook('supystory')  # unregister the callback hooked at /supystory
+        httpserver.unhook('msgserver')  # unregister the callback hooked at /supystory
 
         # Stuff for Supybot
         self.__parent.die()
@@ -76,6 +85,10 @@ class MsgServer(callbacks.Plugin):
         author = irc.getCallback('MsgServer').classModule.__author__.__str__()
 
         irc.reply(author)
+
+    def doHTTPMsg(self, msg):
+        irc = world.getIrc(self.registryValue('adminNet'))
+        irc.queueMsg(ircmsgs.privmsg('Iota', msg))
     info = wrap(info)
 Class = MsgServer
 

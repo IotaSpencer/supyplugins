@@ -52,6 +52,9 @@ MsgServer = conf.registerPlugin('MsgServer')
 # This is where your configuration variables (if any) should go.  For example:
 # conf.registerGlobalValue(MsgServer, 'someConfigVariableName',
 #     registry.Boolean(False, _("""Help for someConfigVariableName.""")))
-conf.registerGlobalValue(MsgServer, 'sendingKey', registry.String("", _("""Key for authenticating received messages."""), private=True))
+conf.registerGlobalValue(MsgServer, 'sendingKey',
+    registry.String("", _("""Key for authenticating received messages."""), private=True))
+conf.registerGlobalValue(MsgServer, 'adminNet',
+    registry.String("", _("""Network name that messages will go to."""), private=True))
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:
