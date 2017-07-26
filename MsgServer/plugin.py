@@ -98,7 +98,7 @@ class MsgServer(callbacks.Plugin):
         irc = world.getIrc(self.registryValue('adminNet'))
         log.info("headers: {}".format(headers))
         log.info("text: {}".format(msg))
-        irc.queueMsg(ircmsgs.privmsg('Iota', msg))
+        irc.queueMsg(ircmsgs.privmsg('Iota', "{}".format(msg)))
     info = wrap(info)
 Class = MsgServer
 
