@@ -53,8 +53,8 @@ class ServerCallback(httpserver.SupyHTTPServerCallback):
     def doPost(self, handler, path, form):
         if path == '/':
             self.plugin.doHTTPMsg(form)
-            self.send_response(200)
-            self.wfile.write('Thanks!')
+            handler.send_response(200)
+            handler.wfile.write('Thanks!')
             return
 
 instance = None
