@@ -54,6 +54,8 @@ class ServerCallback(httpserver.SupyHTTPServerCallback):
         self.plugin.doHTTPMsg(form)
         self.send_response(200)
         self.wfile.write('Thanks!')
+        return
+
 instance = None
 class MsgServer(callbacks.Plugin):
     """Send Msgs to a self hosted service."""
