@@ -96,6 +96,7 @@ class MsgServer(callbacks.Plugin):
         author = irc.getCallback("MsgServer").classModule.__author__.__str__()
 
         irc.reply(author)
+    info = wrap(info)
 
     def doHTTPMsg(self, handler, headers, msg):
         irc = world.getIrc(self.registryValue("adminNet"))
@@ -110,11 +111,11 @@ class MsgServer(callbacks.Plugin):
                 irc.queueMsg(ircmsgs.privmsg(channel, text))
             else:
                 handler.send_response(403)
-                handler.wfile.write(json.dumps({"reply": {"error": True, "msg": "Invalid sendingKey"}}))
+                handler.wfile.write(bytes(json.dumps({"reply": {"error": True, "msg": "Invalid sendingKey"}})))
         except KeyError as e:
             handler.send_response(403)
-            handler.wfile.write(json.dumps({"reply": {"error": True, "msg": "Missing %s field." % e}}))
-    info = wrap(info)
+            handler.wfile.write(bytes(json.dumps({"reply": {"error": True, "msg": "Missing %s field." % e}})))
+
 Class = MsgServer
 
 
