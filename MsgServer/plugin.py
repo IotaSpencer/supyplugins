@@ -111,10 +111,10 @@ class MsgServer(callbacks.Plugin):
                 irc.queueMsg(ircmsgs.privmsg(channel, text))
             else:
                 handler.send_response(403)
-                handler.wfile.write(bytes(json.dumps({"reply": {"error": True, "msg": "Invalid sendingKey"}})))
+                handler.wfile.write(bytes(json.dumps({"reply": {"error": True, "msg": "Invalid sendingKey"}}), 'utf-8'))
         except KeyError as e:
             handler.send_response(403)
-            handler.wfile.write(bytes(json.dumps({"reply": {"error": True, "msg": "Missing %s field." % e}})))
+            handler.wfile.write(bytes(json.dumps({"reply": {"error": True, "msg": "Missing %s field." % e}}), 'utf-8'))
 
 Class = MsgServer
 
