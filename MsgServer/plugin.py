@@ -106,16 +106,20 @@ class MsgServer(callbacks.Plugin):
             key = params.get("key", None)
             if key == self.registryValue("sendingKey"):
                 irc.queueMsg(ircmsgs.privmsg(channel, text))
+                handler.send_response(200)
+                handler.send_header('Content-Type', 'application/json')
+                handler.end_headers()
+                handler.wfile.write(bytes(json.dumps({'success': True, 'msg': 'Thanks!'}), 'utf-8'))
             else:
                 handler.send_response(403)
                 handler.send_header('Content-Type', 'application/json')
                 handler.end_headers()
-                handler.wfile.write(bytes(json.dumps({"reply": {"error": True, "msg": "Invalid sendingKey"}}), 'utf-8'))
+                handler.wfile.write(bytes(json.dumps({"success": False, "msg": "Invalid sendingKey"}), 'utf-8'))
         except KeyError as e:
             handler.send_response(403)
             handler.send_header('Content-Type', 'application/json')
             handler.end_headers()
-            handler.wfile.write(bytes(json.dumps({"reply": {"error": True, "msg": "Missing %s field." % e}}), 'utf-8'))
+            handler.wfile.write(bytes(json.dumps({'success': False, "msg": "Missing %s field." % e}), 'utf-8'))
 
 Class = MsgServer
 
