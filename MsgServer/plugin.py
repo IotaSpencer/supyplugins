@@ -42,7 +42,7 @@ import json
 
 try:
     from supybot.i18n import PluginInternationalization
-    _ = PluginInternationalization('MsgServer')
+    _ = PluginInternationalization("MsgServer")
 except ImportError:
     # Placeholder that allows to run the plugin on a bot
     # without the i18n module
@@ -51,12 +51,12 @@ except ImportError:
 
 class ServerCallback(httpserver.SupyHTTPServerCallback):
     name = "MSG Server"
-    defaultResponse = 'NotImplemented!'
+    defaultResponse = "NotImplemented!"
 
     def doPost(self, handler, path, form):
-        if path == '/':
+        if path == "/":
             headers = self.headers
-            j = json.loads("%s" % str(form, 'utf-8'))
+            j = json.loads("%s" % str(form, "utf-8"))
             self.plugin.doHTTPMsg(handler, headers, j)
             handler.send_response(200)
             handler.end_headers()
@@ -78,13 +78,13 @@ class MsgServer(callbacks.Plugin):
         # registering the callback
         callback = ServerCallback()  # create an instance of the callback
         callback.plugin = self
-        httpserver.hook('msgserver', callback)  # register the callback at `/msgserver`
+        httpserver.hook("msgserver", callback)  # register the callback at `/msgserver`
         for cb in self.cbs:
             cb.plugin = self
 
     def die(self):
         # unregister the callback
-        httpserver.unhook('msgserver')  # unregister the callback hooked at /supystory
+        httpserver.unhook("msgserver")  # unregister the callback hooked at /supystory
 
         # Stuff for Supybot
         self.__parent.die()
@@ -93,26 +93,26 @@ class MsgServer(callbacks.Plugin):
         """takes no arguments
         Returns info on the plugin."""
 
-        author = irc.getCallback('MsgServer').classModule.__author__.__str__()
+        author = irc.getCallback("MsgServer").classModule.__author__.__str__()
 
         irc.reply(author)
 
     def doHTTPMsg(self, handler, headers, msg):
-        irc = world.getIrc(self.registryValue('adminNet'))
+        irc = world.getIrc(self.registryValue("adminNet"))
         log.info("headers: {}".format(headers))
         log.info("text: {}".format(msg))
         params = msg
         try:
-            channel = params['channel']
-            text = params['msg']
-            key = params['key']
-            if key == self.registryValue('sendingKey'):
+            channel = params.get("channel", None)
+            text = params.get("msg", None)
+            key = params.get("key", None)
+            if key == self.registryValue("sendingKey"):
                 irc.queueMsg(ircmsgs.privmsg(channel, text))
             else:
-                handler.wfile.write(json.dumps({}))
+                handler.wfile.write(json.dumps({"reply": {"error": True, "msg": "Invalid sendingKey"}}))
         except KeyError as e:
             handler.send_response(403)
-            handler.wfile.write(json.dumps({'reply': {'error': True, 'msg': 'Missing %s field.' % e}}))
+            handler.wfile.write(json.dumps({"reply": {"error": True, "msg": "Missing %s field." % e}}))
     info = wrap(info)
 Class = MsgServer
 
