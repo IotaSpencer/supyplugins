@@ -107,7 +107,7 @@ class MsgServer(callbacks.Plugin):
         }
 
         if fields['channel'] is None or fields['text'] is None or fields['key'] is None:
-            missing_fields = [filter(lambda  x: fields[x] is None, fields.keys())]
+            missing_fields = list(filter(lambda x: fields[x] is None, fields.keys()))
             handler.send_response(403)
             handler.send_header("Content-Type", "application/json")
             handler.end_headers()
