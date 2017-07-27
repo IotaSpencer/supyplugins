@@ -100,21 +100,25 @@ class MsgServer(callbacks.Plugin):
         log.info("headers: {}".format(headers))
         log.info("text: {}".format(msg))
         params = msg
+        fields = {
+            "channel": params.get("channel", None),
+            "text":  params.get("msg", None),
+            "key": params.get("key", None)
+        }
 
-        channel = params.get("channel", None)
-        text = params.get("msg", None)
-        key = params.get("key", None)
-        if key == self.registryValue("sendingKey"):
-            irc.queueMsg(ircmsgs.privmsg(channel, text))
+        if fields['channel'] is None or fields['text'] is None or fields['key'] is None:
+            missing_fields = [filter(lambda  x: fields[x] is None, fields.keys())]
+            handler.send_response(403)
+            handler.send_header("Content-Type", "application/json")
+            handler.end_headers()
+            handler.wfile.write(bytes(json.dumps({"success": False, "msg": "Missing field(s).", "fields": missing_fields}), "utf-8"))
+        elif fields['key'] == self.registryValue("sendingKey"):
+            irc.queueMsg(ircmsgs.privmsg(fields['channel'], fields['text']))
             handler.send_response(200)
             handler.send_header("Content-Type", "application/json")
             handler.end_headers()
             handler.wfile.write(bytes(json.dumps({"success": True, "msg": "Thanks!"}), "utf-8"))
-        elif channel is None or text is None or key is None:
-            handler.send_response(403)
-            handler.send_header("Content-Type", "application/json")
-            handler.end_headers()
-            handler.wfile.write(bytes(json.dumps({"success": False, "msg": "Missing a field."}), "utf-8"))
+
 
         else:
             handler.send_response(403)
