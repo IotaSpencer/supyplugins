@@ -56,11 +56,8 @@ class ServerCallback(httpserver.SupyHTTPServerCallback):
     def doPost(self, handler, path, form):
         if path == '/':
             headers = self.headers
-            log.info("%s" % form)
-            j = json.loads("%s" % form)
-
+            j = json.loads("%s" % str(form, 'utf-8'))
             self.plugin.doHTTPMsg(handler, headers, j)
-            log.info("{}".format(form))
             handler.send_response(200)
             handler.end_headers()
             handler.wfile.write(b"""Thanks!""")
