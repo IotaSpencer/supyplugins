@@ -107,7 +107,7 @@ class MsgServer(callbacks.Plugin):
             text = params['msg']
             text = params['key']
             irc.queueMsg(ircmsgs.privmsg(channel, text))
-            if params and not params.fetch('channel') and not params.fetch('msg') and not params.fetch('key'):
+            if params and not params.get('channel') and not params.get('msg') and not params.get('key'):
                 handler.send_response(403)
                 handler.wfile.write(json.dumps({'reply': {'error': True, 'msg': 'Invalid Key'}}))
                 raise KeyError('Invalid Key Name')
