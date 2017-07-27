@@ -58,9 +58,6 @@ class ServerCallback(httpserver.SupyHTTPServerCallback):
             headers = self.headers
             j = json.loads("%s" % str(form, "utf-8"))
             self.plugin.doHTTPMsg(handler, headers, j)
-            handler.send_response(200)
-            handler.end_headers()
-            handler.wfile.write(b"""Thanks!""")
             return
 
 instance = None
@@ -111,9 +108,11 @@ class MsgServer(callbacks.Plugin):
                 irc.queueMsg(ircmsgs.privmsg(channel, text))
             else:
                 handler.send_response(403)
+                handler.end_headers()
                 handler.wfile.write(bytes(json.dumps({"reply": {"error": True, "msg": "Invalid sendingKey"}}), 'utf-8'))
         except KeyError as e:
             handler.send_response(403)
+            handler.end_headers()
             handler.wfile.write(bytes(json.dumps({"reply": {"error": True, "msg": "Missing %s field." % e}}), 'utf-8'))
 
 Class = MsgServer
