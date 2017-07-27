@@ -38,6 +38,8 @@ import supybot.httpserver as httpserver
 import supybot.ircmsgs as ircmsgs
 import supybot.log as log
 
+import json
+
 try:
     from supybot.i18n import PluginInternationalization
     _ = PluginInternationalization('MsgServer')
@@ -54,7 +56,8 @@ class ServerCallback(httpserver.SupyHTTPServerCallback):
     def doPost(self, handler, path, form):
         if path == '/':
             headers = self.headers
-            self.plugin.doHTTPMsg(handler, headers, form)
+            j = json.loads(form)
+            self.plugin.doHTTPMsg(handler, headers, j)
             log.info("{}".format(form))
             handler.send_response(200)
             handler.end_headers()
