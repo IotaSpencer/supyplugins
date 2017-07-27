@@ -105,15 +105,14 @@ class MsgServer(callbacks.Plugin):
         try:
             channel = params['channel']
             text = params['msg']
-            text = params['key']
-            irc.queueMsg(ircmsgs.privmsg(channel, text))
-            if params and not params.get('channel') and not params.get('msg') and not params.get('key'):
-                handler.send_response(403)
-                handler.wfile.write(json.dumps({'reply': {'error': True, 'msg': 'Invalid Key'}}))
-                raise KeyError('Invalid Key Name')
-        except KeyError:
+            key = params['key']
+            if key == self.registryValue('sendingKey'):
+                irc.queueMsg(ircmsgs.privmsg(channel, text))
+            else:
+                handler.wfile.write(json.dumps({}))
+        except KeyError as e:
             handler.send_response(403)
-            handler.wfile.write(json.dumps({'reply': {'error': True, 'msg': 'Missing Key'}}))
+            handler.wfile.write(json.dumps({'reply': {'error': True, 'msg': 'Missing %s field.' % e}}))
     info = wrap(info)
 Class = MsgServer
 
