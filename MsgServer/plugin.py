@@ -109,6 +109,7 @@ class MsgServer(callbacks.Plugin):
             if key == self.registryValue("sendingKey"):
                 irc.queueMsg(ircmsgs.privmsg(channel, text))
             else:
+                handler.send_response(403)
                 handler.wfile.write(json.dumps({"reply": {"error": True, "msg": "Invalid sendingKey"}}))
         except KeyError as e:
             handler.send_response(403)
