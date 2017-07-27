@@ -101,7 +101,19 @@ class MsgServer(callbacks.Plugin):
         irc = world.getIrc(self.registryValue('adminNet'))
         log.info("headers: {}".format(headers))
         log.info("text: {}".format(msg))
-        irc.queueMsg(ircmsgs.privmsg('Iota', "{}".format(msg)))
+        params = msg
+        try:
+            channel = params['channel']
+            text = params['msg']
+            text = params['key']
+            irc.queueMsg(ircmsgs.privmsg(channel, text))
+            if params and not params.fetch('channel') and not params.fetch('msg') and not params.fetch('key'):
+                handler.send_response(403)
+                handler.wfile.write(json.dumps({'reply': {'error': True, 'msg': 'Invalid Key'}}))
+                raise KeyError('Invalid Key Name')
+        except KeyError:
+            handler.send_response(403)
+            handler.wfile.write(json.dumps({'reply': {'error': True, 'msg': 'Missing Key'}}))
     info = wrap(info)
 Class = MsgServer
 
