@@ -36,8 +36,7 @@ import supybot.plugins as plugins
 import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
 from supybot.i18n import PluginInternationalization, internationalizeDocstring
-import requests
-
+import pyrebrandly.api as api
 _ = PluginInternationalization('Rebrandly')
 
 @internationalizeDocstring
@@ -48,7 +47,11 @@ class Rebrandly(callbacks.Plugin):
     def __init__(self):
         pass
 
-    def
+    def shorten(self, irc, msg, args, url, title, desc):
+        """<url> [<title>] [<desc>]
+        Shorten a url using the configured credentials."""
+        instance = api.Links(self.registryValue('api.key'), self.registryValue('api.domain_name'), self.registryValue('api.domain_id'), self.registryValue('api.team_id'))
+        instance.add()
 Class = Rebrandly
 
 
