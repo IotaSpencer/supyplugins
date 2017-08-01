@@ -1,0 +1,37 @@
+actions:
+  net-address-change:
+    string: Network Address Change
+    params:
+      network: Network Name
+      old-address: Previous Address
+      new-address: Address to update to
+      user: The user or admin that updated the address
+    channel: '#IRC-Source/Audit'
+  contact-info-change:
+    string: Contact Info Updated
+    params:
+      fields-updated: Updated Fields #  email, web, twitter, fb
+      field-new-values: The values of the updated fields in order
+      user: The admin or user that updated the contact info
+    channel: '#IRC-Source/Audit'
+  new-forum:
+    string: New Forum
+    params:
+      url: Forum URL
+      forum-string: Forum Name
+      creator: Forum Creator
+    channel: '#IRC-Source/Audit'
+  new-forum-post:
+    string: New Forum Post
+    params:
+      url: Post URL
+      post-string: Title of Post
+      author: Author of Post
+    channel: '#irc-source'
+  delete-maintainer-verification:
+    string: deleted maintainer verification
+    params:
+      network: Network that maintainer was associated with
+      admin: Admin username that deleted the verification
+      maintainer: User name of rejected maintainer
+    channel: '#IRC-Source/Audit'

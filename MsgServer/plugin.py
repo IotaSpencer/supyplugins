@@ -57,7 +57,7 @@ class ServerCallback(httpserver.SupyHTTPServerCallback):
         if path == "/":
             headers = self.headers
             j = json.loads("%s" % str(form, "utf-8"))
-            self.plugin.doHTTPMsg(handler, headers, j)
+            self.plugin.do_http_msg(handler, headers, j)
             return
 
 instance = None
@@ -95,15 +95,18 @@ class MsgServer(callbacks.Plugin):
         irc.reply(author)
     info = wrap(info)
 
-    def doHTTPMsg(self, handler, headers, msg):
-        irc = world.getIrc(self.registryValue("adminNet"))
-        log.info("headers: {}".format(headers))
-        log.info("text: {}".format(msg))
+    def format_msg(self, action, ):
+    def send_msg(self, channel, text):
+        irc = world.getIrc(self.registryValue('adminNet'))
+        irc.queueMsg(ircmsgs.privmsg(channel, text))
+        log.info("Sent Message: \"{}\" to '{}'".format(text, channel))
+
+    def do_http_msg(self, handler, headers, msg):
+        log.debug("headers: {}".format(headers))
+        log.debug("text: {}".format(msg))
         params = msg
-        fields = {
-            "channel": params.get("channel", None),
-            "text":  params.get("msg", None),
-            "key": params.get("key", None)
+        important_fields = {
+            'key': params.get('key', None),
         }
 
         if fields['channel'] is None or fields['text'] is None or fields['key'] is None:
@@ -113,13 +116,11 @@ class MsgServer(callbacks.Plugin):
             handler.end_headers()
             handler.wfile.write(bytes(json.dumps({"success": False, "msg": "Missing field(s).", "fields": missing_fields}), "utf-8"))
         elif fields['key'] == self.registryValue("sendingKey"):
-            irc.queueMsg(ircmsgs.privmsg(fields['channel'], fields['text']))
+            self.format_msg(msg)
             handler.send_response(200)
             handler.send_header("Content-Type", "application/json")
             handler.end_headers()
             handler.wfile.write(bytes(json.dumps({"success": True, "msg": "Thanks!"}), "utf-8"))
-
-
         else:
             handler.send_response(403)
             handler.send_header("Content-Type", "application/json")
