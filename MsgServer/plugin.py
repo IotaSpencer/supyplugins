@@ -61,6 +61,8 @@ class ServerCallback(httpserver.SupyHTTPServerCallback):
             return
 
 instance = None
+
+
 class MsgServer(callbacks.Plugin):
     """Send Msgs to a self hosted service."""
     threaded = True
@@ -129,6 +131,4 @@ class MsgServer(callbacks.Plugin):
             handler.wfile.write(bytes(json.dumps({"success": False, "msg": "Invalid sendingKey"}), "utf-8"))
 
 Class = MsgServer
-
-
 # vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
