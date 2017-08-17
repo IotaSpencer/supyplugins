@@ -119,7 +119,7 @@ class MsgServer(callbacks.Plugin):
             handler.end_headers()
             handler.wfile.write(bytes(json.dumps({"success": False, "msg": "Missing field(s).", "fields": missing_fields}), "utf-8"))
         elif important_fields['key'] == self.registryValue("sendingKey"):
-            self.format_msg(msg)
+            self.send_msg(important_fields['channel'], important_fields['text'])
             handler.send_response(200)
             handler.send_header("Content-Type", "application/json")
             handler.end_headers()
