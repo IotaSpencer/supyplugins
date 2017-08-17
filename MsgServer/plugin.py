@@ -95,7 +95,6 @@ class MsgServer(callbacks.Plugin):
         irc.reply(author)
     info = wrap(info)
 
-    def format_msg(self, action, ):
     def send_msg(self, channel, text):
         irc = world.getIrc(self.registryValue('adminNet'))
         irc.queueMsg(ircmsgs.privmsg(channel, text))
@@ -107,15 +106,17 @@ class MsgServer(callbacks.Plugin):
         params = msg
         important_fields = {
             'key': params.get('key', None),
+            'channel': params.get('channel', None),
+            'text': params.get('text', None)
         }
 
-        if fields['channel'] is None or fields['text'] is None or fields['key'] is None:
-            missing_fields = list(filter(lambda x: fields[x] is None, fields.keys()))
+        if important_fields['channel'] is None or important_fields['text'] is None or important_fields['key'] is None:
+            missing_fields = list(filter(lambda x: important_fields[x] is None, important_fields.keys()))
             handler.send_response(403)
             handler.send_header("Content-Type", "application/json")
             handler.end_headers()
             handler.wfile.write(bytes(json.dumps({"success": False, "msg": "Missing field(s).", "fields": missing_fields}), "utf-8"))
-        elif fields['key'] == self.registryValue("sendingKey"):
+        elif important_fields['key'] == self.registryValue("sendingKey"):
             self.format_msg(msg)
             handler.send_response(200)
             handler.send_header("Content-Type", "application/json")
