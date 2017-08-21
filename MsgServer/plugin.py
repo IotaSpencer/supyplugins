@@ -109,7 +109,7 @@ class MsgServer(callbacks.Plugin):
         important_fields = {
             'key': params.get('key', None),
             'channel': params.get('channel', None),
-            'text': params.get('text', None)
+            'text': params.get('msg', None)
         }
 
         if important_fields['channel'] is None or important_fields['text'] is None or important_fields['key'] is None:
