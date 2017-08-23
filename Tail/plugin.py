@@ -28,10 +28,12 @@
 ###
 
 import supybot.utils as utils
+import supybot.world
 from supybot.commands import *
 import supybot.ircutils as ircutils
 import supybot.schedule as schedule
 import supybot.callbacks as callbacks
+import supybot.ircmsgs as ircmsgs
 
 import yaml
 from yamlordereddictloader import Loader
@@ -60,7 +62,7 @@ class Tail(callbacks.Plugin):
 
     def _checkFiles(self):
         self.log.debug('Checking files.')
-        for filename in self.registryValue('files'):
+        for filename in self.files:
             self._checkFile(filename)
 
     def _checkFile(self, filename):
@@ -70,7 +72,10 @@ class Tail(callbacks.Plugin):
         while line:
             line = line.strip()
             if line:
-                self._send(self.lastIrc, filename, line)
+                for channet in self.config[filename]['channels']:
+                    channel = channet.split(",")[1]
+                    network = channet.split(",")[0]
+                    self._send(supybot.world.getIrc(network), channel, line)
             pos = fd.tell()
             line = fd.readline()
         fd.seek(pos)
@@ -89,13 +94,16 @@ class Tail(callbacks.Plugin):
         fd = self.files.pop(filename)
         fd.close()
 
-    def _send(self, irc, identifier, filename, text):
+    def _send(self, irc, identifier, channel, text):
         if self.registryValue('bold'):
             identifier = ircutils.bold(identifier)
         notice = self.registryValue('notice')
-        payload = '\x02[\x0303%s\x03]\x02: %s' % (identifier, text)
+        if notice:
+            irc.sendMsg(ircmsgs.notice(channel, "{}: {}".format(identifier, text)))
+        else:
+            irc.sendMsg(ircmsgs.privmsg(channel, "{}: {}".format(identifier, text)))
 
-    def add(self, irc, msg, args, filename, identifier, channel):
+    def add(self, irc, msg, args, filename, identifier, channel, network):
         """<filename> <identifier> <channel>
 
         Add FILENAME as IDENTIFIER for announcing in CHANNEL
@@ -104,13 +112,14 @@ class Tail(callbacks.Plugin):
             self.config[filename] = {}
             self.config[filename]['identifier'] = identifier
             self.config[filename]['channel'] = channel
+            self.config[filename]['network'] = network
             yaml.dump(open(self.registryValue('configfile'), 'w'), self.config)
             self._add(filename)
         except EnvironmentError as e:
             irc.error(utils.exnToString(e))
             return
         irc.replySuccess()
-    add = wrap(add, ['filename', 'something', 'channel'])
+    add = wrap(add, ['filename', 'something', 'channel', 'network'])
 
     def remove(self, irc, msg, args, identifier):
         """<identifier>
