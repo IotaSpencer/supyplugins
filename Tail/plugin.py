@@ -89,31 +89,31 @@ class Tail(callbacks.Plugin):
         fd = self.files.pop(filename)
         fd.close()
 
-    def _send(self, irc, filename, text):
+    def _send(self, irc, identifier, filename, text):
         if self.registryValue('bold'):
-            filename = ircutils.bold(filename)
+            identifier = ircutils.bold(identifier)
         notice = self.registryValue('notice')
-        payload = '\x02[\x0303%s\x03]\x02: %s' % ("API", text)
-        for target in self.registryValue('targets'):
-            irc.reply(payload, to=target, notice=notice, private=True)
+        payload = '\x02[\x0303%s\x03]\x02: %s' % (identifier, text)
 
-    def add(self, irc, msg, args, filename, channel):
-        """<filename>
+    def add(self, irc, msg, args, filename, identifier, channel):
+        """<filename> <identifier> <channel>
 
-        Basically does the equivalent of tail -f to the targets.
+        Add FILENAME as IDENTIFIER for announcing in CHANNEL
         """
         try:
-
-            yaml.dump()
+            self.config[filename] = {}
+            self.config[filename]['identifier'] = identifier
+            self.config[filename]['channel'] = channel
+            yaml.dump(open(self.registryValue('configfile'), 'w'), self.config)
             self._add(filename)
         except EnvironmentError as e:
             irc.error(utils.exnToString(e))
             return
         irc.replySuccess()
-    add = wrap(add, ['filename'])
+    add = wrap(add, ['filename', 'something', 'channel'])
 
-    def remove(self, irc, msg, args, filename):
-        """<filename>
+    def remove(self, irc, msg, args, identifier):
+        """<identifier>
 
         Stops announcing the lines appended to <filename>.
         """
@@ -122,30 +122,7 @@ class Tail(callbacks.Plugin):
             irc.replySuccess()
         except KeyError:
             irc.error(format('I\'m not currently announcing %s.', filename))
-    remove = wrap(remove, ['filename'])
-
-    def target(self, irc, msg, args, optlist, targets):
-        """[--remove] [<target> ...]
-
-        If given no arguments, returns the current list of targets for this
-        plugin.  If given any number of targets, will add these targets to
-        the current list of targets.  If given --remove and any number of
-        targets, will remove those targets from the current list of targets.
-        """
-        remove = False
-        for (option, arg) in optlist:
-            if option == 'remove':
-                remove = True
-        if not targets:
-            L = self.registryValue('targets')
-            if L:
-                utils.sortBy(ircutils.toLower, L)
-                irc.reply(format('%L', L))
-            else:
-                irc.reply('I\'m not currently targeting anywhere.')
-        elif remove:
-            pass #XXX
-    target = wrap(target, [getopts({'remove': ''}), any('something')])
+    remove = wrap(remove, ['something'])
 
 
 Class = Tail
