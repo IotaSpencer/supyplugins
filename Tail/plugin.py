@@ -30,6 +30,7 @@
 
 import supybot.utils as utils
 import supybot.world as world
+import supybot.conf as conf
 from supybot.commands import *
 import supybot.ircutils as ircutils
 import supybot.schedule as schedule
@@ -44,10 +45,16 @@ class Tail(callbacks.Plugin):
     def __init__(self, irc):
         self.__parent = super(Tail, self)
         self.__parent.__init__(irc)
+        try:
+            self.config = yaml.load(open(conf.supybot.directories.data.dirize(
+                self.registryValue('configfile')), 'r'), Loader=Loader)
+        except EnvironmentError as e:
+            self.log.warning('Couldn\'t open file: %s' % e)
+            raise
         self.files = {}
         period = self.registryValue('period')
         schedule.addPeriodicEvent(self._checkFiles, period, name=self.name())
-        self.config = yaml.load(open(self.registryValue('configfile'), 'r'), Loader=Loader)
+
         for filename in self.config.keys():
             self._add(filename)
 
