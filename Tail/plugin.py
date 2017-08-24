@@ -48,13 +48,12 @@ class Tail(callbacks.Plugin):
         try:
             self.config = yaml.load(open(conf.supybot.directories.data.dirize(
                 self.registryValue('configfile')), 'r'), Loader=Loader)
-        except EnvironmentError as e:
+        except FileNotFoundError as e:
             self.log.warning('Couldn\'t open file: %s' % e)
             raise
         self.files = {}
         period = self.registryValue('period')
         schedule.addPeriodicEvent(self._checkFiles, period, name=self.name())
-
         for filename in self.config.keys():
             self._add(filename)
 
