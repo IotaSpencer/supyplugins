@@ -1,5 +1,6 @@
 ###
 # Copyright (c) 2004-2005, Jeremiah Fincher
+# Copyright (c) 2017-, Ken Spencer
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,7 +29,7 @@
 ###
 
 import supybot.utils as utils
-import supybot.world
+import supybot.world as world
 from supybot.commands import *
 import supybot.ircutils as ircutils
 import supybot.schedule as schedule
@@ -37,6 +38,7 @@ import supybot.ircmsgs as ircmsgs
 
 import yaml
 from yamlordereddictloader import Loader
+
 
 class Tail(callbacks.Plugin):
     def __init__(self, irc):
@@ -57,7 +59,6 @@ class Tail(callbacks.Plugin):
 
     def __call__(self, irc, msg):
         irc = callbacks.SimpleProxy(irc, msg)
-        self.lastIrc = irc
         self.lastMsg = msg
 
     def _checkFiles(self):
@@ -75,7 +76,7 @@ class Tail(callbacks.Plugin):
                 for channet in self.config[filename]['channels']:
                     channel = channet.split(",")[1]
                     network = channet.split(",")[0]
-                    self._send(supybot.world.getIrc(network), channel, line)
+                    self._send(world.getIrc(network), channel, line)
             pos = fd.tell()
             line = fd.readline()
         fd.seek(pos)
@@ -89,9 +90,10 @@ class Tail(callbacks.Plugin):
         fd.seek(0, 2) # 0 bytes, offset from the end of the file.
         self.files[filename] = fd
 
-
     def _remove(self, filename):
         fd = self.files.pop(filename)
+        del self.config[filename]
+        yaml.dump(self.config, open(self.registryValue('configfile'), 'w'))
         fd.close()
 
     def _send(self, irc, identifier, channel, text):
@@ -103,26 +105,27 @@ class Tail(callbacks.Plugin):
         else:
             irc.sendMsg(ircmsgs.privmsg(channel, "{}: {}".format(identifier, text)))
 
-    def add(self, irc, msg, args, filename, identifier, channel, network):
-        """<filename> <identifier> <channel>
+    def add(self, irc, msg, args, filename, identifier, channet):
+        """<filename> <identifier> <channel,network...>
 
-        Add FILENAME as IDENTIFIER for announcing in CHANNEL
+        Add FILENAME as IDENTIFIER for announcing in
+        Make sure the bot has rights to read whatever you tail.
+        channels are written as #channel,network|#channel2,network2
         """
         try:
             self.config[filename] = {}
             self.config[filename]['identifier'] = identifier
-            self.config[filename]['channel'] = channel
-            self.config[filename]['network'] = network
-            yaml.dump(open(self.registryValue('configfile'), 'w'), self.config)
+            self.config[filename]['channels'] = channet
+            yaml.dump(self.config, open(self.registryValue('configfile'), 'w'))
             self._add(filename)
         except EnvironmentError as e:
             irc.error(utils.exnToString(e))
             return
         irc.replySuccess()
-    add = wrap(add, ['filename', 'something', 'channel', 'network'])
+    add = wrap(add, ['filename', 'something', many('something')])
 
-    def remove(self, irc, msg, args, identifier):
-        """<identifier>
+    def remove(self, irc, msg, args, filename):
+        """<filename>
 
         Stops announcing the lines appended to <filename>.
         """
@@ -131,7 +134,7 @@ class Tail(callbacks.Plugin):
             irc.replySuccess()
         except KeyError:
             irc.error(format('I\'m not currently announcing %s.', filename))
-    remove = wrap(remove, ['something'])
+    remove = wrap(remove, ['filename'])
 
 
 Class = Tail
