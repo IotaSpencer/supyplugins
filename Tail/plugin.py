@@ -59,6 +59,7 @@ class Tail(callbacks.Plugin):
 
     def __call__(self, irc, msg):
         irc = callbacks.SimpleProxy(irc, msg)
+        self.lastIrc = irc
         self.lastMsg = msg
 
     def _checkFiles(self):
@@ -76,7 +77,7 @@ class Tail(callbacks.Plugin):
                 for channet in self.config[filename]['channels']:
                     channel = channet.split(",")[1]
                     network = channet.split(",")[0]
-                    self._send(world.getIrc(network), channel, line)
+                    self._send(self.lastIrc, channel, line)
             pos = fd.tell()
             line = fd.readline()
         fd.seek(pos)
