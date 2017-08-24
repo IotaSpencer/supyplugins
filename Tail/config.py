@@ -47,19 +47,9 @@ def configure(advanced):
     from supybot.questions import expect, anything, something, yn
     conf.registerPlugin('Tail', True)
 
-class ValidChannelOrNick(registry.String):
-    """Value must be a valid channel or a valid nick."""
-    def setValue(self, v):
-        if not (ircutils.isNick(v) or ircutils.isChannel(v)):
-            self.error()
-        registry.String.setValue(self, v)
-
-class Targets(registry.SpaceSeparatedListOfStrings):
-    Value = ValidChannelOrNick
-
 Tail = conf.registerPlugin('Tail')
 conf.registerGlobalValue(Tail, 'bold',
-    registry.Boolean(False, _("""Determines whether the bot will bold the filename
+    registry.Boolean(False, _("""Determines whether the bot will bold the identifier
     in tail lines announced to the channel.""")))
 conf.registerGlobalValue(Tail, 'notice',
     registry.Boolean(False, _("""Determines whether the bot will send its tail
@@ -69,7 +59,7 @@ conf.registerGlobalValue(Tail, 'period',
     the files that are being tailed.  The number is in seconds.  This plugin
     must be reloaded for changes to this period to take effect.""")))
 conf.registerGlobalValue(Tail, 'configfile',
-    registry.String('local/files.yml', _("""Determines the file name the Tail plugin will 
+    registry.String('files.yml', _("""Determines the file name the Tail plugin will 
     grab its files and channels from.""")))
 
 
