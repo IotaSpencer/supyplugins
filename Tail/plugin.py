@@ -80,10 +80,11 @@ class Tail(callbacks.Plugin):
         while line:
             line = line.strip()
             if line:
-                for channet in self.config[filename]['channels']:
+                fdict = self.config[filename]
+                for channet in fdict['channels']:
                     channel = channet.split(",")[1]
                     network = channet.split(",")[0]
-                    self._send(self.lastIrc, channel, line)
+                    self._send(self.lastIrc, fdict['identifier'], channel, line)
             pos = fd.tell()
             line = fd.readline()
         fd.seek(pos)
