@@ -110,9 +110,9 @@ class Tail(callbacks.Plugin):
             identifier = ircutils.bold(identifier)
         notice = self.registryValue('notice')
         if notice:
-            irc.sendMsg(ircmsgs.notice(channel, "{}: {}".format(identifier, text)))
+            irc.queueMsg(ircmsgs.notice(channel, "{}: {}".format(identifier, text)))
         else:
-            irc.sendMsg(ircmsgs.privmsg(channel, "{}: {}".format(identifier, text)))
+            irc.queueMsg(ircmsgs.privmsg(channel, "{}: {}".format(identifier, text)))
 
     def add(self, irc, msg, args, filename, identifier, channet):
         """<filename> <identifier> <channel,network...>
