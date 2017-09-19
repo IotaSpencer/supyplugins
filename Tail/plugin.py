@@ -37,8 +37,7 @@ import supybot.schedule as schedule
 import supybot.callbacks as callbacks
 import supybot.ircmsgs as ircmsgs
 
-import yaml
-from yamlordereddictloader import Loader
+import json
 
 
 class Tail(callbacks.Plugin):
@@ -46,8 +45,8 @@ class Tail(callbacks.Plugin):
         self.__parent = super(Tail, self)
         self.__parent.__init__(irc)
         try:
-            self.config = yaml.load(open(conf.supybot.directories.data.dirize(
-                self.registryValue('configfile')), 'r'), Loader=Loader)
+            self.config = json.load(open(conf.supybot.directories.data.dirize(
+                self.registryValue('configfile')), 'r'), object_pairs_hook=utils.collections.OrderedDict )
         except FileNotFoundError as e:
             self.log.warning('Couldn\'t open file: %s' % e)
             raise
@@ -102,7 +101,7 @@ class Tail(callbacks.Plugin):
     def _remove(self, filename):
         fd = self.files.pop(filename)
         del self.config[filename]
-        yaml.dump(self.config, open(self.registryValue('configfile'), 'w'))
+        json.dump(self.config, open(self.registryValue('configfile'), 'w'))
         fd.close()
 
     def _send(self, irc, identifier, channel, text):
@@ -125,7 +124,7 @@ class Tail(callbacks.Plugin):
             self.config[filename] = {}
             self.config[filename]['identifier'] = identifier
             self.config[filename]['channels'] = channet
-            yaml.dump(self.config, open(self.registryValue('configfile'), 'w'))
+            json.dump(self.config, open(self.registryValue('configfile'), 'w'))
             self._add(filename)
         except EnvironmentError as e:
             irc.error(utils.exnToString(e))
