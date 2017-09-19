@@ -1,5 +1,0 @@
-"/abs/path/to/file/to/tail":
-    identifier: somename
-    channels:
-      - "network1,#channel"
-      - "network2,#channel2"

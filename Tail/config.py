@@ -59,7 +59,7 @@ conf.registerGlobalValue(Tail, 'period',
     the files that are being tailed.  The number is in seconds.  This plugin
     must be reloaded for changes to this period to take effect.""")))
 conf.registerGlobalValue(Tail, 'configfile',
-    registry.String('files.yml', _("""Determines the file name the Tail plugin will 
+    registry.String('files.json', _("""Determines the file name the Tail plugin will 
     grab its files and channels from.""")))
 
 
