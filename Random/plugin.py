@@ -35,6 +35,8 @@ from supybot.commands import *
 import supybot.plugins as plugins
 import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
+import supybot.log as log
+
 try:
     from supybot.i18n import PluginInternationalization
     _ = PluginInternationalization('Random')
@@ -54,11 +56,15 @@ class Random(callbacks.Plugin):
             if ',' not in nrange:
                 irc.error("input must be 'int,int'")
                 return
-            nrange = nrange.split(',')
-            rstart = nrange[0]
-            rend = nrange[1]
-            rint = random.randint(rstart, rend)
-            irc.reply(rint, prefixNick=False)
+            try:
+                nrange = nrange.split(',')
+                rstart = int(nrange[0])
+                rend = int(nrange[1])
+                rint = random.randint(rstart, rend)
+                irc.reply(rint, prefixNick=False)
+            except TypeError as e:
+                irc.error("Couldn't generate a number. Reason: {}".format(e))
+                log.debug(e)
         else:
             rint = random.randint(1,1000)
             irc.reply(rint, prefixNick=False)
