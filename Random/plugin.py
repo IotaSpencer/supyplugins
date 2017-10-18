@@ -48,6 +48,8 @@ class Random(callbacks.Plugin):
     """A collection of commands that return a random value."""
     threaded = True
     def randint(self, irc, msg, args, nrange=None):
+        """[<int>,<int>]
+        Returns a random integer for the range (1-1000 if range not given)"""
         if nrange:
             if ',' not in nrange:
                 irc.error("input must be 'int,int'")
