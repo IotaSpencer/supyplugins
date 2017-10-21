@@ -21,8 +21,13 @@
 * Oper utilities plugin
 #### Operhelp
 * Plugin used on #operhelp on ElectroCode
+#### Random
+* Plugin that returns random values
+* Mostly a utility plugin for commands
 #### Rebrandly
 * Plugin using our [pyrebrandly](https://github.com/ElectroCode/pyrebrandly) library to manage rebrandly links, domains, and account information.
+#### Tail
+* Plugin that is based on [stepnem](https://github.com/stepnem)'s Tail plugin, but uses JSON instead of configuration nodes, allowing multiple targets and files.
 #### UndernetX
 * Plugin for authing to Undernet's X service.
 #### Yourls
