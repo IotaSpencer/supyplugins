@@ -37,6 +37,7 @@ import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
 import supybot.log as log
 
+import string
 try:
     from supybot.i18n import PluginInternationalization
     _ = PluginInternationalization('Random')
@@ -70,6 +71,13 @@ class Random(callbacks.Plugin):
             irc.reply(rint, prefixNick=False)
     randint = wrap(randint, [optional('something')])
 
+    def randalpha(self, irc, msg, args, nrange=None):
+        """[<letter>,<letter>]
+        Returns a random letter from the English Alphabet (A-Z if range not given)"""
+        letters = string.ascii_uppercase
+        letter = random.choice(letters)
+        irc.reply(letter, prefixNick=False)
+    randalpha = wrap(randalpha, [optional('something')])
 Class = Random
 
 
