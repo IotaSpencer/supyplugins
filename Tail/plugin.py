@@ -69,7 +69,7 @@ class Tail(callbacks.Plugin):
 
     def _checkFiles(self):
         self.log.debug('Checking files.')
-        for filename in self.files:
+        for filename in self.files.keys():
             self.log.debug('Checking {} ...'.format(filename))
             self._checkFile(filename)
 
