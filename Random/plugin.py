@@ -73,9 +73,11 @@ class Random(callbacks.Plugin):
             except TypeError as e:
                 irc.error("Couldn't generate a number. Reason: %s" % e)
                 log.debug(e)
+                return
             except ValueError as e:
                 irc.error("Invalid Input: %s" % e)
                 log.debug(e)
+                return
         else:
             rint = random.randint(1,1000)
             irc.reply(rint)
