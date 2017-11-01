@@ -125,6 +125,7 @@ class Random(callbacks.Plugin):
                 int(lrange[0])
             except ValueError as e:
                 irc.error("Numbers are to be used in the command 'Random randint'")
+                log.error("%s" % e)
                 return
             except IndexError as e:
                 irc.error("The range must be in the format LETTER,LETTER. a,z / a,c / h,o are all valid ranges.")
