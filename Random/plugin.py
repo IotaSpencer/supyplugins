@@ -50,6 +50,8 @@ except ImportError:
 class Random(callbacks.Plugin):
     """A collection of commands that return a random value. This is more of a utility plugin than a standalone plugin."""
     threaded = True
+
+    @staticmethod
     def lower_letters_in_range(start_letter, end_letter):
         start_index = string.ascii_lowercase.find(start_letter)
         end_index = string.ascii_lowercase.find(end_letter)
@@ -57,6 +59,8 @@ class Random(callbacks.Plugin):
         assert end_index != -1
         assert start_letter < end_letter
         return string.ascii_lowercase[start_index:end_index]
+
+    @staticmethod
     def upper_letters_in_range(start_letter, end_letter):
         start_index = string.ascii_uppercase.find(start_letter)
         end_index = string.ascii_uppercase.find(end_letter)
