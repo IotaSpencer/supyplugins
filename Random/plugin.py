@@ -61,9 +61,6 @@ class Random(callbacks.Plugin):
         """[<int>,<int>]
         Returns a random integer for the range (1-1000 if range not given)"""
         if nrange:
-            if ',' not in nrange:
-                irc.error("input must be 'int,int'")
-                return
             try:
                 nrange = nrange.split(',')
                 rstart = int(nrange[0])
@@ -75,8 +72,11 @@ class Random(callbacks.Plugin):
                 log.debug("%s" % e)
                 return
             except ValueError as e:
-                irc.error("Invalid Input: %s" % e)
+                irc.error("invalid input -> %s" % e)
                 log.debug("%s" % e)
+                return
+            except IndexError as e:
+                irc.error("input must have a ',' in between the start and end. Format is INT,INT")
                 return
         else:
             rint = random.randint(1,1000)
@@ -91,6 +91,9 @@ class Random(callbacks.Plugin):
             try:
                 int(lrange[1])
                 int(lrange[0])
+            except TypeError as e:
+                irc.error("Couldn't generate a letter. Reason: %s" % e)
+                log.debug("%s" % e)
             except ValueError as e:
                 irc.error("Numbers are to be used in the command 'Random randint'")
             except IndexError as e:
