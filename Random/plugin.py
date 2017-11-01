@@ -96,8 +96,10 @@ class Random(callbacks.Plugin):
         if nrange:
             lrange = nrange.split(',')
             try:
-                int(lrange[1])
-                int(lrange[0])
+                end = lrange[1]
+                start = lrange[0]
+                letter = random.choice(self.upper_letters_in_range(start, end))
+                irc.reply(letter)
             except TypeError as e:
                 irc.error("Couldn't generate a letter. Reason: %s" % e)
                 log.debug("%s" % e)
@@ -105,10 +107,7 @@ class Random(callbacks.Plugin):
                 irc.error("Numbers are to be used in the command 'Random randint'")
             except IndexError as e:
                 irc.error("The range must be in the format LETTER,LETTER. A,Z / A,C / H,O are all valid ranges.")
-            start = lrange[0]
-            end = lrange[1]
-            letter = random.choice(self.upper_letters_in_range(start, end))
-            irc.reply(letter)
+
         else:
             letters = string.ascii_uppercase
             letter = random.choice(letters)
@@ -121,8 +120,10 @@ class Random(callbacks.Plugin):
         if nrange:
             lrange = nrange.split(',')
             try:
-                int(lrange[1])
-                int(lrange[0])
+                end = lrange[1]
+                start = lrange[0]
+                letter = random.choice(self.lower_letters_in_range(start, end))
+                irc.reply(letter)
             except ValueError as e:
                 irc.error("Numbers are to be used in the command 'Random randint'")
                 log.error("%s" % e)
@@ -130,10 +131,7 @@ class Random(callbacks.Plugin):
             except IndexError as e:
                 irc.error("The range must be in the format LETTER,LETTER. a,z / a,c / h,o are all valid ranges.")
                 return
-            start = lrange[0]
-            end = lrange[1]
-            letter = random.choice(self.lower_letters_in_range(start, end))
-            irc.reply(letter)
+
         else:
             letters = string.ascii_lowercase
             letter = random.choice(letters)
