@@ -111,6 +111,9 @@ class Random(callbacks.Plugin):
                 irc.error("Numbers are to be used in the command 'Random randint'")
             except IndexError as e:
                 irc.error("The range must be in the format LETTER,LETTER. A,Z / A,C / H,O are all valid ranges.")
+            except AssertionError:
+                irc.error("available letters are A-Z")
+                return
 
         else:
             letters = string.ascii_uppercase
@@ -135,6 +138,8 @@ class Random(callbacks.Plugin):
             except IndexError as e:
                 irc.error("The range must be in the format LETTER,LETTER. a,z / a,c / h,o are all valid ranges.")
                 return
+            except AssertionError:
+                irc.error("available letters are a-z")
 
         else:
             letters = string.ascii_lowercase
