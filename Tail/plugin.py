@@ -48,7 +48,7 @@ class Tail(callbacks.Plugin):
             self.config = json.load(open(conf.supybot.directories.data.dirize(
                 self.registryValue('configfile')), 'r'))
         except FileNotFoundError as e:
-            self.log.warning('Couldn\'t open file: %s' % e)
+            self.log.warning("Couldn't open file: %s" % e)
             raise
         self.files = {}
         period = self.registryValue('period')

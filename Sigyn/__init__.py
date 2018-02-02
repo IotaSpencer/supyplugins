@@ -1,5 +1,5 @@
 ###
-# Copyright (c) 2013, Ken Spencer
+# Copyright (c) 2016, Nicolas Coevoet
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -38,17 +38,17 @@ import supybot.world as world
 
 # Use this for the version of this plugin.  You may wish to put a CVS keyword
 # in here if you're keeping the plugin in CVS or some similar system.
-__version__ = "0.1"
+__version__ = "1.0.1"
 
 # XXX Replace this with an appropriate author or supybot.Author instance.
-__author__ = 'Ken Spencer'
+__author__ = supybot.authors.unknown
 
 # This is a dictionary mapping supybot.Author instances to lists of
 # contributions.
 __contributors__ = {}
 
 # This is a url where the most recent plugin package can be downloaded.
-__url__ = '' # 'http://supybot.com/Members/yourname/Minecraft/download'
+__url__ = '' # 'http://supybot.com/Members/yourname/Idoru/download'
 
 from . import config
 from . import plugin

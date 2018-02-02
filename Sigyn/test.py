@@ -1,5 +1,5 @@
 ###
-# Copyright (c) 2013, Ken Spencer
+# Copyright (c) 2016, Nicolas Coevoet
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@
 
 from supybot.test import *
 
-class MinecraftTestCase(PluginTestCase):
-    plugins = ('Minecraft',)
+class SigynTestCase(PluginTestCase):
+    plugins = ('Sigyn',)
 
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:

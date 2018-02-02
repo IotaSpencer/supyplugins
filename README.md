@@ -12,9 +12,6 @@
 * Plugin using cloudflare's API to manage a IRC network's addresses
 #### MCStatus
 * Checks MineCraft's servers for their status
-#### Minecraft
-* DEPRECATED
-* Would return crafting recipes for items
 #### MsgServer
 * Allows sending messages through the bot through a webhook
 #### Oper
@@ -30,5 +27,3 @@
 * Plugin that is based on [stepnem](https://github.com/stepnem)'s Tail plugin, but uses JSON instead of configuration nodes, allowing multiple targets and files.
 #### UndernetX
 * Plugin for authing to Undernet's X service.
-#### Yourls
-* Plugin for managing a self-hosted YOURLS instance.
