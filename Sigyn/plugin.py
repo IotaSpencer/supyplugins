@@ -442,7 +442,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
             self.collecting = True
             irc.replySuccess()
 
-    collectnick = wrap(collectnick, ['admin'])
+    collectnick = wrap(collectnick, ['owner'])
 
     def lswords(self, irc, msg, args, word):
         """<word>
@@ -450,7 +450,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
         return if word is in list"""
         irc.reply('%s in list ? %s' % (word, word in self.words))
 
-    lswords = wrap(lswords, ['admin', 'text'])
+    lswords = wrap(lswords, ['owner', 'text'])
 
     def rmwords(self, irc, msg, args, words):
         """<word> [<word>]
@@ -484,7 +484,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
         self.words = newList
         irc.reply('words list updated: %s words before, %s words after' % (oldList, len(newList)))
 
-    rmwords = wrap(rmwords, ['admin', many('something')])
+    rmwords = wrap(rmwords, ['owner', many('something')])
 
     def removeDnsbl(self, irc, ip, droneblHost, droneblKey):
         def check(answer):
@@ -624,7 +624,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
                             protection, permit, life, abuse, count)))
         irc.replySuccess()
 
-    state = wrap(state, ['admin', optional('channel')])
+    state = wrap(state, ['owner', optional('channel')])
 
     def defcon(self, irc, msg, args, channel):
         """[<channel>]
@@ -663,7 +663,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
                                     irc.sendMsg(ircmsgs.IrcMsg('MODE %s +oqz %s $~a' % (channel, irc.nick)))
         irc.replySuccess()
 
-    defcon = wrap(defcon, ['admin', optional('channel')])
+    defcon = wrap(defcon, ['owner', optional('channel')])
 
     def vacuum(self, irc, msg, args):
         """takes no arguments
@@ -675,7 +675,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
         c.close()
         irc.replySuccess()
 
-    vacuum = wrap(vacuum, ['admin'])
+    vacuum = wrap(vacuum, ['owner'])
 
     def leave(self, irc, msg, args, channel):
         """<channel>
@@ -693,7 +693,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
         self.setRegistryValue('lastActionTaken', 0.0, channel=channel)
         irc.replySuccess()
 
-    leave = wrap(leave, ['admin', 'channel'])
+    leave = wrap(leave, ['owner', 'channel'])
 
     def stay(self, irc, msg, args, channel):
         """<channel>
@@ -711,7 +711,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
                 pass
         irc.replySuccess()
 
-    stay = wrap(stay, ['admin', 'channel'])
+    stay = wrap(stay, ['owner', 'channel'])
 
     def isprotected(self, irc, msg, args, hostmask, channel):
         """<hostmask> [<channel>]
@@ -729,7 +729,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
             else:
                 irc.reply('%s is not protected' % hostmask);
 
-    isprotected = wrap(isprotected, ['admin', 'hostmask', optional('channel')])
+    isprotected = wrap(isprotected, ['owner', 'hostmask', optional('channel')])
 
     def checkactions(self, irc, msg, args, duration):
         """<duration> in days                                                                                                                                                                                                                                  
@@ -754,7 +754,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
                     channels.append(channel)
         irc.replies(channels, None, None, False)
 
-    checkactions = wrap(checkactions, ['admin', 'positiveInt'])
+    checkactions = wrap(checkactions, ['owner', 'positiveInt'])
 
     def netsplit(self, irc, msg, args, duration):
         """<duration>
@@ -770,7 +770,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
                             "INFO: netsplit activated for %ss by %s: some abuses are ignored" % (duration, msg.nick))
             irc.replySuccess()
 
-    netsplit = wrap(netsplit, ['admin', 'positiveInt'])
+    netsplit = wrap(netsplit, ['owner', 'positiveInt'])
 
     def checkpattern(self, irc, msg, args, text):
         """ <text>
@@ -787,7 +787,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
         else:
             irc.reply('No matches')
 
-    checkpattern = wrap(checkpattern, ['admin', 'text'])
+    checkpattern = wrap(checkpattern, ['owner', 'text'])
 
     def lspattern(self, irc, msg, args, optlist, pattern):
         """[--deep] <id|pattern>
@@ -808,7 +808,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
         else:
             irc.reply('no pattern found')
 
-    lspattern = wrap(lspattern, ['admin', getopts({'deep': ''}), 'text'])
+    lspattern = wrap(lspattern, ['owner', getopts({'deep': ''}), 'text'])
 
     def rmpattern(self, irc, msg, args, ids):
         """<id> [<id>]
@@ -823,7 +823,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
         self.logChannel(irc, 'PATTERN: %s deleted %s' % (msg.nick, ','.join(results)))
         irc.replySuccess()
 
-    rmpattern = wrap(rmpattern, ['admin', many('positiveInt')])
+    rmpattern = wrap(rmpattern, ['owner', many('positiveInt')])
 
     def addpattern(self, irc, msg, args, limit, life, pattern):
         """<limit> <life> <pattern>
@@ -835,7 +835,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
         self.logChannel(irc, 'PATTERN: %s added #%s : "%s" %s/%ss' % (msg.nick, result, pattern, limit, life))
         irc.reply('#%s added' % result)
 
-    addpattern = wrap(addpattern, ['admin', 'nonNegativeInt', 'positiveInt', 'text'])
+    addpattern = wrap(addpattern, ['owner', 'nonNegativeInt', 'positiveInt', 'text'])
 
     def addregexpattern(self, irc, msg, args, limit, life, pattern):
         """<limit> <life> /<pattern>/
@@ -847,7 +847,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
         self.logChannel(irc, 'PATTERN: %s added #%s : "%s" %s/%ss' % (msg.nick, result, pattern[0], limit, life))
         irc.reply('#%s added' % result)
 
-    addregexpattern = wrap(addregexpattern, ['admin', 'nonNegativeInt', 'positiveInt', 'getPatternAndMatcher'])
+    addregexpattern = wrap(addregexpattern, ['owner', 'nonNegativeInt', 'positiveInt', 'getPatternAndMatcher'])
 
     def editpattern(self, irc, msg, args, uid, limit, life, comment):
         """<id> <limit> <life> [<comment>]
@@ -864,7 +864,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
         else:
             irc.reply("#%s doesn't exist")
 
-    editpattern = wrap(editpattern, ['admin', 'positiveInt', 'nonNegativeInt', 'positiveInt', optional('text')])
+    editpattern = wrap(editpattern, ['owner', 'positiveInt', 'nonNegativeInt', 'positiveInt', optional('text')])
 
     def togglepattern(self, irc, msg, args, uid, toggle):
         """<id> <boolean>
@@ -881,7 +881,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
         else:
             irc.reply("#%s doesn't exist or is already in requested state" % uid)
 
-    togglepattern = wrap(togglepattern, ['admin', 'positiveInt', 'boolean'])
+    togglepattern = wrap(togglepattern, ['owner', 'positiveInt', 'boolean'])
 
     def lstmp(self, irc, msg, args, channel):
         """[<channel>]
@@ -915,7 +915,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
                 t.start()
         irc.replySuccess()
 
-    dnsbl = wrap(dnsbl, ['admin', many('ip')])
+    dnsbl = wrap(dnsbl, ['owner', many('ip')])
 
     def rmdnsbl(self, irc, msg, args, ips):
         """<ip> [<ip>]
@@ -929,7 +929,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
                 t.start()
         irc.replySuccess()
 
-    rmdnsbl = wrap(rmdnsbl, ['admin', many('ip')])
+    rmdnsbl = wrap(rmdnsbl, ['owner', many('ip')])
 
     def checkRegistar(self, irc, nick, ip):
         try:
@@ -957,7 +957,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
                 t.start()
         irc.replySuccess()
 
-    registar = wrap(registar, ['admin', many('ip')])
+    registar = wrap(registar, ['owner', many('ip')])
 
     def addtmp(self, irc, msg, args, channel, text):
         """[<channel>] <message>
@@ -1017,7 +1017,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
         self.logChannel(irc, 'PATTERN: added tmp "%s" for %ss by %s in %s channels' % (text, life, msg.nick, n))
         irc.replySuccess()
 
-    addglobaltmp = wrap(addglobaltmp, ['admin', 'text'])
+    addglobaltmp = wrap(addglobaltmp, ['owner', 'text'])
 
     def rmtmp(self, irc, msg, args, channel):
         """[<channel>]
@@ -1097,7 +1097,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
         else:
             irc.replyError('operatorNick or operatorPassword is empty')
 
-    oper = wrap(oper, ['admin'])
+    oper = wrap(oper, ['owner'])
 
     def undline(self, irc, msg, args, txt):
         """<ip>
@@ -1106,7 +1106,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
         irc.queueMsg(ircmsgs.IrcMsg('UNDLINE %s on *' % txt))
         irc.replySuccess()
 
-    undline = wrap(undline, ['admin', 'ip'])
+    undline = wrap(undline, ['owner', 'ip'])
 
     def checkresolve(self, irc, msg, args, txt):
         """<nick!ident@hostmask>
@@ -1114,7 +1114,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
            returns computed hostmask"""
         irc.reply(self.prefixToMask(irc, txt))
 
-    checkresolve = wrap(checkresolve, ['admin', 'hostmask'])
+    checkresolve = wrap(checkresolve, ['owner', 'hostmask'])
 
     # internal stuff
 
@@ -1323,7 +1323,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
                 channels.append(channel)
         irc.reply('%s channels: %s' % (len(channels), ', '.join(channels)))
 
-    unstaffed = wrap(unstaffed, ['admin'])
+    unstaffed = wrap(unstaffed, ['owner'])
 
     def list(self, irc, msg, args):
         """
@@ -1348,7 +1348,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
             channels.append('%s %s(%s)' % (channel, flag, l))
         irc.reply('%s channels: %s' % (len(channels), ', '.join(channels)))
 
-    list = wrap(list, ['admin'])
+    list = wrap(list, ['owner'])
 
     #    def do315 (self,irc,msg):
     #        channel = msg.args[1]
@@ -1671,7 +1671,7 @@ class Sigyn(callbacks.Plugin, plugins.ChannelDBHandler):
             irc.queueMsg(ircmsgs.who(channel, args=('%tuhna,1',)))
         irc.replySuccess()
 
-    resync = wrap(resync, ['admin'])
+    resync = wrap(resync, ['owner'])
 
     def cleanup(self, irc):
         i = self.getIrc(irc)
