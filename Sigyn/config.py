@@ -85,7 +85,7 @@ conf.registerGlobalValue(Sigyn, 'klineDuration',
                          registry.Integer(-1, """kline duration, in minutes, with -1, bot will not kill or kline"""))
 conf.registerGlobalValue(Sigyn, 'klineMessage',
                          registry.String(
-                             "Please do not spam users or channels on this network. If in error, please contact kline@freenode.net.",
+                             "Please do not spam users or channels on BuddyIM. If in error, please contact <support@buddy.im>.",
                              """default reason used in kline's message"""))
 conf.registerChannelValue(Sigyn, 'killMessage',
                           registry.String("Spam is off topic on this network.", """kill reason"""))
@@ -121,7 +121,7 @@ conf.registerGlobalValue(Sigyn, 'saslDuration',
                          registry.PositiveInteger(240, """dline duration in minutes"""))
 conf.registerGlobalValue(Sigyn, 'saslMessage',
                          registry.String(
-                             "Banned due to too many failed login attempts in a short period, email kline@freenode.net when corrected. Thanks!",
+                             "Banned due to too many failed login attempts in a short period, email support@buddy.im when corrected. Thanks!",
                              """dline message"""))
 
 conf.registerChannelValue(Sigyn, 'lastActionTaken',
@@ -242,7 +242,7 @@ conf.registerChannelValue(Sigyn, 'brokenDuration',
                           registry.PositiveInteger(1, """kline duration in minutes"""))
 conf.registerChannelValue(Sigyn, 'brokenReason',
                           registry.String(
-                              "Your irc client seems broken and is flooding lots of channels. Banned for %s min, if in error, please contact kline@freenode.net.",
+                              "Your irc client seems broken and is flooding lots of channels. Banned for %s min, if in error, please contact support@buddy.im.",
                               """kline reason"""))
 conf.registerChannelValue(Sigyn, 'brokenHost',
                           registry.CommaSeparatedListOfStrings([''], """list of knowns broken host"""))
