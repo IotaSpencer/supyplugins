@@ -125,7 +125,7 @@ class Vote(callbacks.Plugin):
                 self.polls = []
             if self.polls is []:
                 irc.reply("No Polls.")
-            for idx, entry in enumerate(self.polls):
+            for idx, entry in enumerate(self.polls[channel]):
                 entry_string = []
                 question = entry['question']
                 yays = entry['yays']
