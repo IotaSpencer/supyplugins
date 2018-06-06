@@ -53,37 +53,6 @@ class Vote(callbacks.Plugin):
     """Voting Plugin using yaml"""
     threaded = True
 
-    def _vote(self, irc, voter, pid, yaynay):
-        switch = False
-        if yaynay:
-            if yaynay == 'yay':
-                if voter in self.polls[pid]['yays']:
-                    irc.reply('Cannot create duplicate votes, only switch vote')
-                    return
-                elif voter in self.polls[pid]['nays']:
-                    switch = True
-                    self.polls[pid]['yays'].append(voter)
-                    self.polls[pid]['nays'].remove(voter)
-                    irc.reply("Switched vote for %s to %s" % (voter, yaynay))
-            if yaynay == 'nay':
-                if voter in self.polls[pid]['nays']:
-                    irc.reply('Cannot create duplicate votes, only switch vote')
-                    return
-                elif voter in self.polls[pid]['yays']:
-                    switch = True
-                    self.polls[pid]['yays'].remove(voter)
-                    self.polls[pid]['nays'].append(voter)
-                    irc.reply("Switched vote for %s to %s" % (voter, yaynay))
-
-        if not switch:
-            self.polls[pid][yaynay + 's'].append(voter)
-        with open(self.pollFile, 'w+') as f:
-            yaml.dump(self.polls, f, default_flow_style=False)
-
-    def _dump(self, obj):
-        with open(self.pollFile, 'w') as f:
-            yaml.dump(obj, f, default_flow_style=False)
-
     def __init__(self, irc):
         self.__parent = super(Vote, self)
         self.__parent.__init__(irc)
@@ -95,8 +64,46 @@ class Vote(callbacks.Plugin):
             log.warning("Couldn't open file: %s" % e)
             raise
 
-    def die(self, irc):
-        self._dump(self.polls)
+    def _vote(self, irc, voter, pid, yaynay):
+        switch = False
+        new = True
+        if yaynay:
+            if yaynay == 'yay':
+                if voter in self.polls[pid]['yays']:
+                    new = False
+                    irc.reply('Cannot create duplicate votes, only switch vote')
+                    return False
+                elif voter in self.polls[pid]['nays']:
+                    new = False
+                    switch = True
+                    self.polls[pid]['yays'].append(voter)
+                    self.polls[pid]['nays'].remove(voter)
+                    irc.reply("Switched vote for %s to %s" % (voter, yaynay))
+                    with open(self.pollFile, 'w+') as f:
+                        yaml.dump(self.polls, f, default_flow_style=False)
+                    return True
+            if yaynay == 'nay':
+                if voter in self.polls[pid]['nays']:
+                    new = False
+                    irc.reply('Cannot create duplicate votes, only switch vote')
+                    return False
+                elif voter in self.polls[pid]['yays']:
+                    new = False
+                    switch = True
+                    self.polls[pid]['yays'].remove(voter)
+                    self.polls[pid]['nays'].append(voter)
+                    irc.reply("Switched vote for %s to %s" % (voter, yaynay))
+                    with open(self.pollFile, 'w+') as f:
+                        yaml.dump(self.polls, f, default_flow_style=False)
+                    return True
+        if new:
+            self.polls[pid][yaynay + 's'].append(voter)
+        with open(self.pollFile, 'w+') as f:
+            yaml.dump(self.polls, f, default_flow_style=False)
+
+    def _dump(self, obj):
+        with open(self.pollFile, 'w') as f:
+            yaml.dump(obj, f, default_flow_style=False)
 
     def reloadpolls(self, irc, msg, args):
         """<takes no arguments>
