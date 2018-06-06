@@ -116,11 +116,11 @@ class Vote(callbacks.Plugin):
             log.warning("Couldn't open file: %s" % e)
             raise
 
-    def listpolls(self, irc, msg, args):
+    def listpolls(self, irc, msg, args, channel):
         """<takes no arguments>
         Lists current polls.
         """
-        if msg.args[0] == self.registryValue('pollChannel') or msg.args[0] == '#Situation_Room':
+        if channel and msg.args[0] in irc.state.channels:
             if self.polls is None:
                 self.polls = []
             if self.polls is []:
@@ -137,83 +137,106 @@ class Vote(callbacks.Plugin):
                 entry_string.append("Nays: %s" % (' '.join(nays) if nays != [] else 'none'))
                 entry_string.append("Question asked by %s" % added_by)
                 irc.reply(' / '.join(entry_string))
-    listpolls = wrap(listpolls)
 
-    def poll(self, irc, msg, args, subject):
-        """<subject...>
-        Add a poll.
-        """
-        if msg.args[0] == self.registryValue('pollChannel') or msg.args[0] == '#Situation_Room':
-            if self.polls is None:
-                self.polls = []
-            self.polls.append({
-                'question': subject,
-                'yays': [],
-                'nays': [],
-                'concluded': False,
-                'added_by': msg.nick})
-            self._dump(self.polls)
-    poll = wrap(poll, ['something'])
-
-    def vote(self, irc, msg, args, pid, yaynay):
-        """<id> <yay/nay>
-        Vote on a poll.
-        """
-        voter = ''
-        try:
-            voter = ircdb.users.getUser(msg.prefix).name
-        except KeyError:
-            reply = [
-                "I'm unable to look you up in my user database.",
-                "If you're sure you have a user in my database please try '@nickauth auth' to authenticate."
-                "If this doesn't work, then alert my owner, %s" % ircdb.users.getUser(1).name,
-                ]
-            irc.replies(reply, prefixer='Error: ')
-        if yaynay not in ['yay', 'nay']:
-            irc.error("Valid Answers are 'yay' or 'nay'.")
-            return
-        if self.polls[pid]['concluded']:
-            irc.reply("Poll #%s is finished, it does not accept updates." % pid)
-            return
-        if self._vote(irc, voter, pid, yaynay):
-            with open(self.pollFile, 'w+') as f:
-                yaml.dump(self.polls, f)
         else:
-            log.debug('Not dumping due to no change.')
+            try:
+                if ircdb.users.getUser(msg.prefix)._checkCapability('owner'):
+                    if self.polls is None:
+                        self.polls = []
+                    if self.polls is []:
+                        irc.reply("No Polls.")
+                    for idx, entry in enumerate(self.polls[channel]):
+                        entry_string = []
+                        question = entry['question']
+                        yays = entry['yays']
+                        nays = entry['nays']
+                        added_by = entry['added_by']
+                        # concluded = entry['concluded']
+                        entry_string.append("%d: %s" % (idx, question))
+                        entry_string.append("Yays: %s" % (' '.join(yays) if yays != [] else 'none'))
+                        entry_string.append("Nays: %s" % (' '.join(nays) if nays != [] else 'none'))
+                        entry_string.append("Question asked by %s" % added_by)
+                        irc.reply(' / '.join(entry_string))
 
-    vote = wrap(vote, ['nonNegativeInt', 'something'])
+            except KeyError:
+                return
+    listpolls = wrap(listpolls, ['channel'])
 
-    def conclude(self, irc, msg, args, pid):
-        """<id>
-        Marks a poll as finished.
-        """
-        self.polls[pid]['concluded'] = True
-
-    conclude = wrap(conclude, ['admin', 'nonNegativeInt'])
-
-    def finished(self, irc, msg, args):
-        """<takes no arguments>
-        Lists finished polls.
-        """
-        finished_polls = []
-        for entry in self.polls:
-            if entry['concluded']:
-                finished_polls.append(entry)
-
-        for idx, poll in enumerate(finished_polls):
-            irc.reply(" #{} / {} / {} / {} / {}".format(idx,
-                                                        poll['question'],
-                                                        poll['yays'],
-                                                        poll['nays'],
-                                                        poll['added_by']))
-    finished = wrap(finished)
-
-    def rempoll(self, irc, msg, args, pid):
-        """<id>
-        Removes a poll entirely.
-        """
-
-    rempoll = wrap(rempoll, ['admin', 'nonNegativeInt'])
+    # def poll(self, irc, msg, args, channel, subject):
+    #     """<subject...>
+    #     Add a poll.
+    #     """
+    #     if msg.args[0] == self.registryValue('pollChannel') or msg.args[0] == '#Situation_Room':
+    #         if self.polls is None:
+    #             self.polls = []
+    #         self.polls.append({
+    #             'question': subject,
+    #             'yays': [],
+    #             'nays': [],
+    #             'concluded': False,
+    #             'added_by': msg.nick})
+    #         self._dump(self.polls)
+    # poll = wrap(poll, ['onlyInChannel', 'something'])
+    #
+    # def vote(self, irc, msg, args, channel, pid, yaynay):
+    #     """<id> <yay/nay>
+    #     Vote on a poll.
+    #     """
+    #     voter = ''
+    #     try:
+    #         voter = ircdb.users.getUser(msg.prefix).name
+    #     except KeyError:
+    #         reply = [
+    #             "I'm unable to look you up in my user database.",
+    #             "If you're sure you have a user in my database please try '@nickauth auth' to authenticate."
+    #             "If this doesn't work, then alert my owner, %s" % ircdb.users.getUser(1).name,
+    #             ]
+    #         irc.replies(reply, prefixer='Error: ')
+    #     if yaynay not in ['yay', 'nay']:
+    #         irc.error("Valid Answers are 'yay' or 'nay'.")
+    #         return
+    #     if self.polls[pid]['concluded']:
+    #         irc.reply("Poll #%s is finished, it does not accept updates." % pid)
+    #         return
+    #     if self._vote(irc, voter, pid, yaynay):
+    #         with open(self.pollFile, 'w+') as f:
+    #             yaml.dump(self.polls, f)
+    #     else:
+    #         log.debug('Not dumping due to no change.')
+    #
+    # vote = wrap(vote, ['onlyInChannel', 'nonNegativeInt', 'something'])
+    #
+    # def conclude(self, irc, msg, args, pid):
+    #     """<id>
+    #     Marks a poll as finished.
+    #     """
+    #     self.polls[pid]['concluded'] = True
+    #
+    # conclude = wrap(conclude, ['onlyInChannel', 'admin', 'nonNegativeInt'])
+    #
+    # def finished(self, irc, msg, args):
+    #     """<takes no arguments>
+    #     Lists finished polls.
+    #     """
+    #     finished_polls = []
+    #     for entry in self.polls:
+    #         if entry['concluded']:
+    #             finished_polls.append(entry)
+    #
+    #     for idx, poll in enumerate(finished_polls):
+    #         irc.reply(" #{} / {} / {} / {} / {}".format(idx,
+    #                                                     poll['question'],
+    #                                                     poll['yays'],
+    #                                                     poll['nays'],
+    #                                                     poll['added_by']))
+    # finished = wrap(finished, ['onlyInChannel'])
+    #
+    # def rempoll(self, irc, msg, args, pid):
+    #     """<id>
+    #     Removes a poll entirely.
+    #     """
+    #
+    # rempoll = wrap(rempoll, ['admin', 'onlyInChannel', 'nonNegativeInt'])
 
 Class = Vote
 
