@@ -34,5 +34,16 @@ from supybot.test import *
 class RandomTestCase(PluginTestCase):
     plugins = ('Random',)
 
+    def testRandInt(self):
+        self.assertNotError("randint 1,10000000000000000000000000000000000000000000000000000000000000000000000000000000") # allow positive and big numbers
+        self.assertNotError("randint -100000000000000000000000000000000000000000000000000000000,1000000000000000000000000000000000000000000000000000000000") # allow negative numbers
+        self.assertNotError("randint -100000000000000000000000000000000000000000000000000,-1")
+        self.assertError("randint a,z") # disallow letters
+        self.assertError("randint A,Z") # disallow letters
+        self.assertNotError("randint") # random int between 1 to 1000
+    def testRandUAlpha(self):
+        self.assertNotError("randualpha A,Z")
+    def testRandLAlpha(self):
+        self.assertNotError("randlalpha a,z")
 
 # vim:set shiftwidth=4 tabstop=4 expandtab textwidth=79:

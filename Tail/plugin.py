@@ -52,7 +52,7 @@ class Tail(callbacks.Plugin):
             raise
         self.files = {}
         period = self.registryValue('period')
-        schedule.addPeriodicEvent(self._checkFiles, period, name=self.name())
+        schedule.addPeriodicEvent(self._checkfiles, period, name=self.name())
         for filename in self.config.keys():
             self._add(filename)
 
@@ -67,13 +67,13 @@ class Tail(callbacks.Plugin):
         self.lastIrc = irc
         self.lastMsg = msg
 
-    def _checkFiles(self):
+    def _checkfiles(self):
         self.log.debug('Checking files.')
-        for filename in self.files:
+        for filename in self.files.keys():
             self.log.debug('Checking {} ...'.format(filename))
-            self._checkFile(filename)
+            self._checkfile(filename)
 
-    def _checkFile(self, filename):
+    def _checkfile(self, filename):
         fd = self.files[filename]
         pos = fd.tell()
         line = fd.readline()
@@ -109,9 +109,9 @@ class Tail(callbacks.Plugin):
             identifier = ircutils.bold(identifier)
         notice = self.registryValue('notice')
         if notice:
-            irc.queueMsg(ircmsgs.notice(channel, "{}: {}".format(identifier, text)))
+            irc.queueMsg(ircmsgs.notice(channel, "%s: %s" % (identifier, text)))
         else:
-            irc.queueMsg(ircmsgs.privmsg(channel, "{}: {}".format(identifier, text)))
+            irc.queueMsg(ircmsgs.privmsg(channel, "%s: %s" % (identifier, text)))
 
     def add(self, irc, msg, args, filename, identifier, channet):
         """<filename> <identifier> <channel,network...>

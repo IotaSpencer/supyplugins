@@ -50,32 +50,48 @@ except ImportError:
 class Random(callbacks.Plugin):
     """A collection of commands that return a random value. This is more of a utility plugin than a standalone plugin."""
     threaded = True
-    def letters_in_range(start_letter, end_letter):
-        start_index = string.ascii_letters.find(start_letter)
-        end_index = string.ascii_letters.find(end_letter)
+
+    @staticmethod
+    def lower_letters_in_range(start_letter, end_letter):
+        start_index = string.ascii_lowercase.find(start_letter)
+        end_index = string.ascii_lowercase.find(end_letter)
         assert start_index != -1
         assert end_index != -1
         assert start_letter < end_letter
-        return string.ascii_letters[start_index:end_index]
+        return string.ascii_lowercase[start_index:end_index]
+
+    @staticmethod
+    def upper_letters_in_range(start_letter, end_letter):
+        start_index = string.ascii_uppercase.find(start_letter)
+        end_index = string.ascii_uppercase.find(end_letter)
+        assert start_index != -1
+        assert end_index != -1
+        assert start_letter < end_letter
+        return string.ascii_uppercase[start_index:end_index]
     def randint(self, irc, msg, args, nrange=None):
         """[<int>,<int>]
         Returns a random integer for the range (1-1000 if range not given)"""
         if nrange:
-            if ',' not in nrange:
-                irc.error("input must be 'int,int'")
-                return
             try:
                 nrange = nrange.split(',')
                 rstart = int(nrange[0])
                 rend = int(nrange[1])
                 rint = random.randint(rstart, rend)
-                irc.reply(rint, prefixNick=False)
+                irc.reply(rint)
             except TypeError as e:
-                irc.error("Couldn't generate a number. Reason: {}".format(e))
-                log.debug(e)
+                irc.error("Couldn't generate a number. Reason: %s" % e)
+                log.debug("%s" % e)
+                return
+            except ValueError as e:
+                irc.error("invalid input -> %s" % e)
+                log.debug("%s" % e)
+                return
+            except IndexError as e:
+                irc.error("input must have a ',' in between the start and end. Format is INT,INT")
+                return
         else:
             rint = random.randint(1,1000)
-            irc.reply(rint, prefixNick=False)
+            irc.reply(rint)
     randint = wrap(randint, [optional('something')])
 
     def randualpha(self, irc, msg, args, nrange=None):
@@ -83,14 +99,26 @@ class Random(callbacks.Plugin):
         Returns a random uppercase letter from the English Alphabet (A-Z if range not given)"""
         if nrange:
             lrange = nrange.split(',')
-            start = lrange[0]
-            end = lrange[1]
-            letter = random.choice(self.letters_in_range(start, end))
-            irc.reply(letter, prefixNick=False)
+            try:
+                end = lrange[1]
+                start = lrange[0]
+                letter = random.choice(self.upper_letters_in_range(start, end))
+                irc.reply(letter)
+            except TypeError as e:
+                irc.error("Couldn't generate a letter. Reason: %s" % e)
+                log.debug("%s" % e)
+            except ValueError as e:
+                irc.error("Numbers are to be used in the command 'Random randint'")
+            except IndexError as e:
+                irc.error("The range must be in the format LETTER,LETTER. A,Z / A,C / H,O are all valid ranges.")
+            except AssertionError:
+                irc.error("available letters are A-Z")
+                return
+
         else:
-            letters = string.ascii_lowercase
+            letters = string.ascii_uppercase
             letter = random.choice(letters)
-            irc.reply(letter, prefixNick=False)
+            irc.reply(letter)
     randualpha = wrap(randualpha, [optional('something')])
     def randlalpha(self, irc, msg, args, nrange=None):
         """[<letter>,<letter>]
@@ -98,14 +126,25 @@ class Random(callbacks.Plugin):
 
         if nrange:
             lrange = nrange.split(',')
-            start = lrange[0]
-            end = lrange[1]
-            letter = random.choice(self.letters_in_range(start, end))
-            irc.reply(letter, prefixNick=False)
+            try:
+                end = lrange[1]
+                start = lrange[0]
+                letter = random.choice(self.lower_letters_in_range(start, end))
+                irc.reply(letter)
+            except ValueError as e:
+                irc.error("Numbers are to be used in the command 'Random randint'")
+                log.error("%s" % e)
+                return
+            except IndexError as e:
+                irc.error("The range must be in the format LETTER,LETTER. a,z / a,c / h,o are all valid ranges.")
+                return
+            except AssertionError:
+                irc.error("available letters are a-z")
+
         else:
             letters = string.ascii_lowercase
             letter = random.choice(letters)
-            irc.reply(letter, prefixNick=False)
+            irc.reply(letter)
     randlalpha = wrap(randlalpha, [optional('something')])
 Class = Random
 
