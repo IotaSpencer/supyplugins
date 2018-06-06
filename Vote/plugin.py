@@ -156,8 +156,7 @@ class Vote(callbacks.Plugin):
                 'nays': [],
                 'concluded': False,
                 'added_by': msg.nick})
-            with open(self.pollFile, 'w+') as f:
-                yaml.dump(self.polls, f)
+            self._dump(self.polls)
     poll = wrap(poll, ['something'])
 
     def vote(self, irc, msg, args, pid, yaynay):
@@ -192,13 +191,25 @@ class Vote(callbacks.Plugin):
         """<id>
         Marks a poll as finished.
         """
+        self.polls[pid]['concluded'] = True
 
-    conclude = wrap(conclude, ['nonNegativeInt'])
+    conclude = wrap(conclude, ['admin', 'nonNegativeInt'])
 
-    def finished(self,irc,msg,args):
+    def finished(self, irc, msg, args):
         """<takes no arguments>
         Lists finished polls.
         """
+        finished_polls = []
+        for entry in self.polls:
+            if entry['concluded']:
+                finished_polls.append(entry)
+
+        for idx, poll in enumerate(finished_polls):
+            irc.reply(" #{} / {} / {} / {} / {}".format(idx,
+                                                        poll['question'],
+                                                        poll['yays'],
+                                                        poll['nays'],
+                                                        poll['added_by']))
     finished = wrap(finished)
 
     def rempoll(self, irc, msg, args, pid):
