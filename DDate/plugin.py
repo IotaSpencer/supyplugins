@@ -37,8 +37,8 @@ import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
 from supybot.i18n import PluginInternationalization, internationalizeDocstring
 
-
 _ = PluginInternationalization('DDate')
+
 
 @internationalizeDocstring
 class DDate(callbacks.Plugin):
@@ -46,23 +46,15 @@ class DDate(callbacks.Plugin):
     threaded = True
 
     def ddate(self, irc, msg, args):
-    	"""Returns ddate reply."""
-    	p = subprocess.Popen(["ddate"], stdout=subprocess.PIPE)
-    	out, err = p.communicate()
-    	out = out.split()
-    	out = " ".join(out)
-    	irc.reply(out)
-    ddate = wrap(ddate)
-    def tddate(self, irc, msg, command):
-        """Topics a few channels of mine to ddate"""
+        """Returns ddate reply."""
         p = subprocess.Popen(["ddate"], stdout=subprocess.PIPE)
         out, err = p.communicate()
+        out = out.split()
         out = " ".join(out)
-        ircmsgs.topic('#DDate', out)
-        #ircmsgs.IrcMsg(prefix="", command='TOPIC', args=('#DDate', out), msg="")
-    tddate = wrap(tddate)
+        irc.reply(out)
+
+    ddate = wrap(ddate)
+
 Class = DDate
 
-
 # vim:set shiftwidth=4 softtabstop=4 expandtab textwidth=79:
-
