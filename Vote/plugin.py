@@ -169,7 +169,7 @@ class Vote(callbacks.Plugin):
         else:
             log.debug('Not dumping due to no change.')
 
-    vote = wrap(vote, ['positiveInt', 'something'])
+    vote = wrap(vote, ['nonNegativeInt', 'something'])
 
     def conclude(self, irc, msg, args, pid):
         """<id>
