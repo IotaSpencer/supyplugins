@@ -78,7 +78,11 @@ class Vote(callbacks.Plugin):
         if not switch:
             self.polls[pid][yaynay + 's'].append(voter)
         with open(self.pollFile, 'w+') as f:
-            yaml.dump(self.polls, f)
+            yaml.dump(self.polls, f, default_flow_style=False)
+
+    def _dump(self, obj):
+        with open(self.pollFile, 'w') as f:
+            yaml.dump(obj, f, default_flow_style=False)
 
     def __init__(self, irc):
         self.__parent = super(Vote, self)
@@ -91,7 +95,13 @@ class Vote(callbacks.Plugin):
             log.warning("Couldn't open file: %s" % e)
             raise
 
+    def die(self, irc):
+        self._dump(self.polls)
+
     def reloadpolls(self, irc, msg, args):
+        """<takes no arguments>
+        Reloads the Polls file.
+        """
         try:
             self.polls = yaml.load(open(self.pollFile, 'r'), Loader=yamlordereddictloader.Loader)
 
@@ -176,7 +186,7 @@ class Vote(callbacks.Plugin):
         Marks a poll as finished.
         """
 
-    conclude = wrap(conclude, ['something'])
+    conclude = wrap(conclude, ['nonNegativeInt'])
 
     def finished(self,irc,msg,args):
         """<takes no arguments>
@@ -189,7 +199,7 @@ class Vote(callbacks.Plugin):
         Removes a poll entirely.
         """
 
-    rempoll = wrap(rempoll, ['something'])
+    rempoll = wrap(rempoll, ['admin', 'nonNegativeInt'])
 
 Class = Vote
 
