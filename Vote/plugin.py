@@ -126,20 +126,16 @@ class Vote(callbacks.Plugin):
             if self.polls is []:
                 irc.reply("No Polls.")
             for idx, entry in enumerate(self.polls):
-                print(entry)
                 entry_string = []
-                for key, value in entry.items():
-                    print("{} => {}".format(key, value))
-                    if key == 'question':
-                        entry_string.append("%d: %s" % (idx, value))
-                    if key == 'added_by':
-                        entry_string.append("Question asked by %s" % value)
-                    if key == 'yays':
-                        entry_string.append("Yays: %s" % (' '.join(value) if value != [] else 'none'))
-                    if key == 'nays':
-                        entry_string.append("Nays: %s" % (' '.join(value) if value != [] else 'none'))
-
-                print(entry_string)
+                question = entry['question']
+                yays = entry['yays']
+                nays = entry['nays']
+                added_by = entry['added_by']
+                # concluded = entry['concluded']
+                entry_string.append("%d: %s" % (idx, question))
+                entry_string.append("Yays: %s" % (' '.join(yays) if yays != [] else 'none'))
+                entry_string.append("Nays: %s" % (' '.join(nays) if nays != [] else 'none'))
+                entry_string.append("Question asked by %s" % added_by)
                 irc.reply(' / '.join(entry_string))
     listpolls = wrap(listpolls)
 
