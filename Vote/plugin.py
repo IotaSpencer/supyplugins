@@ -136,7 +136,7 @@ class Vote(callbacks.Plugin):
                 entry_string.append("Yays: %s" % (' '.join(yays) if yays != [] else 'none'))
                 entry_string.append("Nays: %s" % (' '.join(nays) if nays != [] else 'none'))
                 entry_string.append("Question asked by %s" % added_by)
-                irc.reply(' / '.join(entry_string), notice=True, private=True, nickPrefix=False)
+                irc.reply(' / '.join(entry_string), notice=True, private=True, prefixNick=False)
 
         else:
             try:
@@ -156,7 +156,7 @@ class Vote(callbacks.Plugin):
                         entry_string.append("Yays: %s" % (' '.join(yays) if yays != [] else 'none'))
                         entry_string.append("Nays: %s" % (' '.join(nays) if nays != [] else 'none'))
                         entry_string.append("Question asked by %s" % added_by)
-                        irc.reply(' / '.join(entry_string), notice=True, private=True, nickPrefix=False)
+                        irc.reply(' / '.join(entry_string), notice=True, private=True, prefixNick=False)
                 else:
                     irc.errorInvalid(channel, 'argument')
 
