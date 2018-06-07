@@ -170,8 +170,10 @@ class Vote(callbacks.Plugin):
         """
         if msg.nick in irc.state.channels[channel].ops:
             if self.polls is None:
-                self.polls = []
-            self.polls.append({
+                self.polls = {}
+            if channel not in self.polls.keys():
+                self.polls[channel] = []
+            self.polls[channel].append({
                 'question': subject,
                 'yays': [],
                 'nays': [],
