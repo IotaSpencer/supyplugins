@@ -64,41 +64,41 @@ class Vote(callbacks.Plugin):
             log.warning("Couldn't open file: %s" % e)
             raise
 
-    def _vote(self, irc, voter, pid, yaynay):
+    def _vote(self, irc, channel, voter, pid, yaynay):
         switch = False
         new = True
         if yaynay:
             if yaynay == 'yay':
-                if voter in self.polls[pid]['yays']:
+                if voter in self.polls[channel][pid]['yays']:
                     new = False
                     irc.reply('Cannot create duplicate votes, only switch vote')
                     return False
-                elif voter in self.polls[pid]['nays']:
+                elif voter in self.polls[channel][pid]['nays']:
                     new = False
                     switch = True
-                    self.polls[pid]['yays'].append(voter)
-                    self.polls[pid]['nays'].remove(voter)
+                    self.polls[channel][pid]['yays'].append(voter)
+                    self.polls[channel][pid]['nays'].remove(voter)
                     irc.reply("Switched vote for %s to %s" % (voter, yaynay))
                     with open(self.pollFile, 'w+') as f:
                         yaml.dump(self.polls, f, default_flow_style=False)
                     return True
             if yaynay == 'nay':
-                if voter in self.polls[pid]['nays']:
+                if voter in self.polls[channel][pid]['nays']:
                     new = False
                     irc.reply('Cannot create duplicate votes, only switch vote')
                     return False
-                elif voter in self.polls[pid]['yays']:
+                elif voter in self.polls[channel][pid]['yays']:
                     new = False
                     switch = True
-                    self.polls[pid]['yays'].remove(voter)
-                    self.polls[pid]['nays'].append(voter)
+                    self.polls[channel][pid]['yays'].remove(voter)
+                    self.polls[channel][pid]['nays'].append(voter)
                     irc.reply("Switched vote for %s to %s" % (voter, yaynay))
                     with open(self.pollFile, 'w+') as f:
                         yaml.dump(self.polls, f, default_flow_style=False)
                     return True
         if new:
-            self.polls[pid][yaynay + 's'].append(voter)
-        with open(self.pollFile, 'w+') as f:
+            self.polls[channel][pid][yaynay + 's'].append(voter)
+        with open(self.pollFile, 'w') as f:
             yaml.dump(self.polls, f, default_flow_style=False)
 
     def _dump(self, obj):
@@ -136,7 +136,7 @@ class Vote(callbacks.Plugin):
                 entry_string.append("Yays: %s" % (' '.join(yays) if yays != [] else 'none'))
                 entry_string.append("Nays: %s" % (' '.join(nays) if nays != [] else 'none'))
                 entry_string.append("Question asked by %s" % added_by)
-                irc.reply(' / '.join(entry_string))
+                irc.reply(' / '.join(entry_string), notice=True, private=True, nickPrefix=False)
 
         else:
             try:
@@ -156,7 +156,7 @@ class Vote(callbacks.Plugin):
                         entry_string.append("Yays: %s" % (' '.join(yays) if yays != [] else 'none'))
                         entry_string.append("Nays: %s" % (' '.join(nays) if nays != [] else 'none'))
                         entry_string.append("Question asked by %s" % added_by)
-                        irc.reply(' / '.join(entry_string))
+                        irc.reply(' / '.join(entry_string), notice=True, private=True, nickPrefix=False)
                 else:
                     irc.errorInvalid(channel, 'argument')
 
@@ -196,9 +196,9 @@ class Vote(callbacks.Plugin):
             if self.polls[channel][pid]['concluded']:
                 irc.reply("Poll #%s is finished, it does not accept updates." % pid)
                 return
-            if self._vote(irc, msg.nick, pid, yaynay):
-                with open(self.pollFile, 'w+') as f:
-                    yaml.dump(self.polls, f)
+            if self._vote(irc, channel, msg.nick, pid, yaynay):
+                with open(self.pollFile, 'w') as f:
+                    self._dump(self.polls)
             else:
                 log.debug('Not dumping due to no change.')
         else:
