@@ -178,7 +178,7 @@ class Vote(callbacks.Plugin):
                 'concluded': False,
                 'added_by': msg.nick})
             self._dump(self.polls)
-    poll = wrap(poll, ['onlyInChannel', 'rest'])
+    poll = wrap(poll, ['onlyInChannel', 'text'])
 
     def vote(self, irc, msg, args, channel, pid, yaynay):
         """<id> <yay/nay>
