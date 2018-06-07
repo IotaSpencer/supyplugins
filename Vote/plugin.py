@@ -212,6 +212,7 @@ class Vote(callbacks.Plugin):
             if channel in self.polls.keys():
                 try:
                     self.polls[channel][pid]['concluded'] = True
+                    self._dump(self.polls)
                 except IndexError:
                     irc.error("'%s' does not have a poll with that index.")
                 except KeyError:
@@ -225,17 +226,13 @@ class Vote(callbacks.Plugin):
         """<takes no arguments>
         Lists finished polls.
         """
-        finished_polls = []
-        for entry in self.polls[channel]:
+        for idx, entry in enumerate(self.polls[channel]):
             if entry['concluded']:
-                finished_polls.append(entry)
-
-        for idx, poll in enumerate(finished_polls):
-            irc.reply(" #{} / {} / {} / {} / {}".format(idx,
-                                                        poll['question'],
-                                                        poll['yays'],
-                                                        poll['nays'],
-                                                        poll['added_by']))
+                irc.reply(" #{} / {} / {} / {} / {}".format(idx,
+                                                            entry['question'],
+                                                            entry['yays'],
+                                                            entry['nays'],
+                                                            entry['added_by']))
     finished = wrap(finished, ['onlyInChannel'])
 
     def rempoll(self, irc, msg, args, channel, pid):
