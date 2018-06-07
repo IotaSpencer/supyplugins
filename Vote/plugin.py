@@ -180,6 +180,8 @@ class Vote(callbacks.Plugin):
                 'concluded': False,
                 'added_by': msg.nick})
             self._dump(self.polls)
+            irc.reply("Poll added for %s" % channel)
+
     poll = wrap(poll, ['onlyInChannel', 'text'])
 
     def vote(self, irc, msg, args, channel, pid, yaynay):
@@ -189,15 +191,18 @@ class Vote(callbacks.Plugin):
         if yaynay not in ['yay', 'nay']:
             irc.error("Valid Answers are 'yay' or 'nay'.")
             return
-        if self.polls[pid]['concluded']:
-            irc.reply("Poll #%s is finished, it does not accept updates." % pid)
-            return
-        if self._vote(irc, msg.nick, pid, yaynay):
-            with open(self.pollFile, 'w+') as f:
-                yaml.dump(self.polls, f)
-        else:
-            log.debug('Not dumping due to no change.')
 
+        if channel in self.polls.keys():
+            if self.polls[channel][pid]['concluded']:
+                irc.reply("Poll #%s is finished, it does not accept updates." % pid)
+                return
+            if self._vote(irc, msg.nick, pid, yaynay):
+                with open(self.pollFile, 'w+') as f:
+                    yaml.dump(self.polls, f)
+            else:
+                log.debug('Not dumping due to no change.')
+        else:
+            irc.error("'%s' has no polls." % channel)
     vote = wrap(vote, ['onlyInChannel', 'nonNegativeInt', 'something'])
 
     def conclude(self, irc, msg, args, channel, pid):
@@ -205,8 +210,16 @@ class Vote(callbacks.Plugin):
         Marks a poll as finished. This is limited to channel ops.
         """
         if msg.nick in irc.state.channels[channel].ops:
-            self.polls[channel][pid]['concluded'] = True
-
+            if channel in self.polls.keys():
+                try:
+                    self.polls[channel][pid]['concluded'] = True
+                except IndexError:
+                    irc.error("'%s' does not have a poll with that index.")
+                except KeyError:
+                    irc.error("This may be a bug with the bot or poll file, please submit an issue at\
+                     <https://github.com/IotaSpencer/supyplugins> with all pertinent information.")
+        else:
+            irc.error("Access Denied.")
     conclude = wrap(conclude, ['onlyInChannel', 'nonNegativeInt'])
 
     def finished(self, irc, msg, args, channel):
