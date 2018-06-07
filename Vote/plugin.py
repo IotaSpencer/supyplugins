@@ -180,7 +180,7 @@ class Vote(callbacks.Plugin):
                 'concluded': False,
                 'added_by': msg.nick})
             self._dump(self.polls)
-            irc.reply("Poll added for %s" % channel)
+            irc.reply("Poll added. %s" % subject)
 
     poll = wrap(poll, ['onlyInChannel', 'text'])
 
@@ -197,8 +197,7 @@ class Vote(callbacks.Plugin):
                 irc.reply("Poll #%s is finished, it does not accept updates." % pid)
                 return
             if self._vote(irc, channel, msg.nick, pid, yaynay):
-                with open(self.pollFile, 'w') as f:
-                    self._dump(self.polls)
+                irc.reply("Successfully voted on %s" % self.polls[channel][pid]['question'])
             else:
                 log.debug('Not dumping due to no change.')
         else:
