@@ -39,6 +39,7 @@ import supybot.log as log
 import yaml
 from collections import OrderedDict
 import yamlordereddictloader
+import time
 
 try:
     from supybot.i18n import PluginInternationalization
@@ -57,6 +58,7 @@ class Vote(callbacks.Plugin):
         self.__parent = super(Vote, self)
         self.__parent.__init__(irc)
         self.pollFile = conf.supybot.directories.data.dirize('polls.yml')
+        self._requests = {}
         try:
             self.polls = yaml.load(open(self.pollFile, 'r'), Loader=yamlordereddictloader.Loader)
 
@@ -68,7 +70,7 @@ class Vote(callbacks.Plugin):
         switch = False
         new = True
         if yaynay:
-            if yaynay == 'yay':
+            if yaynay == 'yes':
                 if voter in self.polls[channel][pid]['yays']:
                     new = False
                     irc.reply('Cannot create duplicate votes, only switch vote')
@@ -78,11 +80,11 @@ class Vote(callbacks.Plugin):
                     switch = True
                     self.polls[channel][pid]['yays'].append(voter)
                     self.polls[channel][pid]['nays'].remove(voter)
-                    irc.reply("Switched vote for %s to %s" % (voter, yaynay))
+                    irc.reply("Switched vote for %s to %s" % (voter, 'yes'))
                     with open(self.pollFile, 'w+') as f:
                         yaml.dump(self.polls, f, default_flow_style=False)
                     return True
-            if yaynay == 'nay':
+            if yaynay == 'no':
                 if voter in self.polls[channel][pid]['nays']:
                     new = False
                     irc.reply('Cannot create duplicate votes, only switch vote')
@@ -92,12 +94,17 @@ class Vote(callbacks.Plugin):
                     switch = True
                     self.polls[channel][pid]['yays'].remove(voter)
                     self.polls[channel][pid]['nays'].append(voter)
-                    irc.reply("Switched vote for %s to %s" % (voter, yaynay))
+                    irc.reply("Switched vote for %s to %s" % (voter, 'no'))
                     with open(self.pollFile, 'w+') as f:
                         yaml.dump(self.polls, f, default_flow_style=False)
                     return True
         if new:
-            self.polls[channel][pid][yaynay + 's'].append(voter)
+            if yaynay == 'yes':
+                self.polls[channel][pid]['yays'].append(voter)
+            elif yaynay == 'no':
+                self.polls[channel][pid]['nays'].append(voter)
+            else:
+                irc.errorInvalid('argument', yaynay)
         with open(self.pollFile, 'w') as f:
             yaml.dump(self.polls, f, default_flow_style=False)
 
@@ -105,6 +112,54 @@ class Vote(callbacks.Plugin):
         with open(self.pollFile, 'w') as f:
             yaml.dump(obj, f, default_flow_style=False)
 
+    def do330(self, irc, msg):
+        mynick, theirnick, theiraccount, garbage = msg.args
+        # I would like to use a dict comprehension, but we have to support
+        # Python 2.6 :(
+        self._requests = dict([(x, y) for x, y in self._requests.items()
+                               if y[0] + 60 > time.time()])
+        try:
+            (timestamp, prefix, irc) = self._requests.pop((irc.network, theirnick))
+        except KeyError:
+            return
+
+    def _votes(self, irc, channel, pid):
+        irc.reply("Please wait while we tally up the votes.")
+        yays = self.polls[channel][pid]['yays']
+        nays = self.polls[channel][pid]['nays']
+        channel_obj = irc.state.channels[channel]
+        ops = channel_obj.ops
+        halfops = channel_obj.halfops
+        voices = channel_obj.voices
+        statused = ops + halfops + voices
+        users = irc.state.channels[channel].users - statused
+        total_yays = len(yays)
+        total_nays = len(nays)
+        yay_ops = [], yay_halfops = [], yay_voices = [], yay_users = []
+        nay_ops = [], nay_halfops = [], nay_voices = [], nay_users = []
+
+        return {
+            'ops': {
+                'yays': yay_ops,
+                'nays': nay_ops,
+                'total': (len(yay_ops), len(nay_ops))
+                },
+            'halfops': {
+                'yays': yay_halfops,
+                'nays': nay_halfops,
+                'total': (len(yay_halfops), len(nay_halfops))
+                },
+            'voices': {
+                'yays': yay_voices,
+                'nays': nay_voices,
+                'total': (len(yay_voices), len(nay_voices))
+                },
+            'users': {
+                'yays': yay_users,
+                'nays': nay_users,
+                'total': (len(yay_users), len(nay_users))
+                }
+            }
     def reloadpolls(self, irc, msg, args):
         """<takes no arguments>
         Reloads the Polls file.
@@ -118,7 +173,7 @@ class Vote(callbacks.Plugin):
 
     def listpolls(self, irc, msg, args, channel):
         """<takes no arguments>
-        Lists current polls.
+        Lists current polls. For a breakdown via statuses, see '@help Vote votes'
         """
         if channel and msg.args[0] in irc.state.channels:
             if self.polls is None:
@@ -133,8 +188,8 @@ class Vote(callbacks.Plugin):
                 added_by = entry['added_by']
                 # concluded = entry['concluded']
                 entry_string.append("%d: %s" % (idx, question))
-                entry_string.append("Yays: %s" % (' '.join(yays) if yays != [] else 'none'))
-                entry_string.append("Nays: %s" % (' '.join(nays) if nays != [] else 'none'))
+                entry_string.append("Yes: %s" % (' '.join(yays) if yays != [] else 'none'))
+                entry_string.append("No: %s" % (' '.join(nays) if nays != [] else 'none'))
                 entry_string.append("Question asked by %s" % added_by)
                 irc.reply(' / '.join(entry_string), notice=True, private=True, prefixNick=False)
 
@@ -158,11 +213,11 @@ class Vote(callbacks.Plugin):
                         entry_string.append("Question asked by %s" % added_by)
                         irc.reply(' / '.join(entry_string), notice=True, private=True, prefixNick=False)
                 else:
-                    irc.errorInvalid(channel, 'argument')
+                    irc.errorInvalid('argument', channel)
 
             except KeyError:
                 return
-    listpolls = wrap(listpolls, ['channel'])
+    listpolls = wrap(listpolls, ['callerInGivenChannel'])
 
     def poll(self, irc, msg, args, channel, subject):
         """<subject...>
@@ -182,11 +237,11 @@ class Vote(callbacks.Plugin):
             self._dump(self.polls)
             irc.reply("Poll added. %s" % subject)
 
-    poll = wrap(poll, ['onlyInChannel', 'text'])
+    poll = wrap(poll, ['callerInGivenChannel', 'text'])
 
     def vote(self, irc, msg, args, channel, pid, yaynay):
-        """<id> <yay/nay>
-        Vote on a poll.
+        """[channel] <id> <yay/nay>
+        Vote on a poll. Channel is only needed if used in a PM.
         """
         if yaynay not in ['yay', 'nay']:
             irc.error("Valid Answers are 'yay' or 'nay'.")
@@ -202,7 +257,20 @@ class Vote(callbacks.Plugin):
                 log.debug('Not dumping due to no change.')
         else:
             irc.error("'%s' has no polls." % channel)
-    vote = wrap(vote, ['onlyInChannel', 'nonNegativeInt', 'something'])
+    vote = wrap(vote, ['callerInGivenChannel', 'nonNegativeInt', 'something'])
+
+    def votes(self, irc, msg, args, channel, pid):
+        """[channel] <id>
+        Retrieves the vote count for a poll.
+        """
+        if channel and msg.args[0] in irc.state.channels:
+            if msg.args[0] != channel:
+                if ircdb.checkCapability(msg.prefix, 'admin') or ircdb.checkCapability(msg.prefix, 'owner'):
+                    irc.error("Not Implemented")
+                else:
+                    irc.errorInvalid('argument', channel)
+            elif msg.args[0] == channel:
+                irc.error("Not Implemented")
 
     def conclude(self, irc, msg, args, channel, pid):
         """<id>
@@ -213,6 +281,7 @@ class Vote(callbacks.Plugin):
                 try:
                     self.polls[channel][pid]['concluded'] = True
                     self._dump(self.polls)
+                    irc.reply("Marked poll #%s (%s) as concluded." % (pid, self.polls[channel][pid]['question']))
                 except IndexError:
                     irc.error("'%s' does not have a poll with that index.")
                 except KeyError:
@@ -228,7 +297,7 @@ class Vote(callbacks.Plugin):
         """
         for idx, entry in enumerate(self.polls[channel]):
             if entry['concluded']:
-                irc.reply(" #{} / {} / {} / {} / {}".format(idx,
+                irc.reply(" #{}: {} / Yays: {} / Nays: {} / Added by {}".format(idx,
                                                             entry['question'],
                                                             entry['yays'],
                                                             entry['nays'],
