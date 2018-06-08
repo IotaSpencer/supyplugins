@@ -51,23 +51,28 @@ class Random(callbacks.Plugin):
     """A collection of commands that return a random value. This is more of a utility plugin than a standalone plugin."""
     threaded = True
 
-    @staticmethod
-    def lower_letters_in_range(start_letter, end_letter):
+    def lowercase_in_range(self, irc, msg, args, start_letter, end_letter):
+        """<start_letter> <end_letter>"""
+        if start_letter in string.ascii_lowercase and end_letter in string.ascii_lowercase:
         start_index = string.ascii_lowercase.find(start_letter)
         end_index = string.ascii_lowercase.find(end_letter)
         assert start_index != -1
         assert end_index != -1
         assert start_letter < end_letter
         return string.ascii_lowercase[start_index:end_index]
+    lowercase_in_range = wrap(lowercase_in_range, ['letter', 'letter'])
 
-    @staticmethod
-    def upper_letters_in_range(start_letter, end_letter):
-        start_index = string.ascii_uppercase.find(start_letter)
-        end_index = string.ascii_uppercase.find(end_letter)
-        assert start_index != -1
-        assert end_index != -1
-        assert start_letter < end_letter
-        return string.ascii_uppercase[start_index:end_index]
+    def uppercase_in_range(self, irc, msg, args, start_letter, end_letter):
+        """<start_letter> <end_letter>"""
+        if start_letter in string.ascii_uppercase and end_letter in string.ascii_uppercase:
+            start_index = string.ascii_uppercase.find(start_letter)
+            end_index = string.ascii_uppercase.find(end_letter)
+            assert start_index != -1
+            assert end_index != -1
+            assert start_letter < end_letter
+            return string.ascii_uppercase[start_index:end_index]
+    uppercase_in_range = wrap(uppercase_in_range, ['letter', 'letter'])
+
     def randint(self, irc, msg, args, nrange=None):
         """[<int>,<int>]
         Returns a random integer for the range (1-1000 if range not given)"""
@@ -120,6 +125,7 @@ class Random(callbacks.Plugin):
             letter = random.choice(letters)
             irc.reply(letter)
     randualpha = wrap(randualpha, [optional('something')])
+
     def randlalpha(self, irc, msg, args, nrange=None):
         """[<letter>,<letter>]
         Returns a random lowercase letter from the English Alphabet (a-z if range not given)"""
